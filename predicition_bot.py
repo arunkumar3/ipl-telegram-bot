@@ -64,6 +64,10 @@ def load_schedule_mapping(csv_file):
 # Load schedule mapping once (from CSV)
 schedule_mapping = load_schedule_mapping(SCHEDULE_CSV)
 
+
+async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(f"Chat ID: `{update.effective_chat.id}`", parse_mode="Markdown")
+
 # -------------------------------
 # Function: Scheduled Poll (Automatic)
 # -------------------------------
@@ -255,6 +259,7 @@ async def main():
     app.add_handler(CommandHandler("startpoll", startpoll))
     app.add_handler(CommandHandler("score", score_match))
     app.add_handler(CommandHandler("leaderboard", leaderboard))
+    app.add_handler(CommandHandler("getchatid", get_chat_id))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
 
     # Set up APScheduler for automatic poll scheduling
