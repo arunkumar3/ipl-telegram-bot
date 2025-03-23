@@ -180,7 +180,8 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
             "Prediction": chosen_team,
             "Correct": ""
         }
-        df = df.append(new_row, ignore_index=True)
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+
     else:
         df.loc[row_mask, "Prediction"] = chosen_team
         df.loc[row_mask, "Correct"] = ""
