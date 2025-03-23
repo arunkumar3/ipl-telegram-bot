@@ -37,13 +37,8 @@ polls = {}
 # Helper Function to Load Schedule from CSV
 # -------------------------------
 def load_schedule_mapping(csv_file):
-    """
-    Loads the match schedule from a CSV file and returns a dictionary mapping
-    match numbers to their details.
-    """
     df = pd.read_csv(csv_file)
-    df.columns = df.columns.str.strip()  # <--- this is the key fix
-
+    df.columns = df.columns.str.strip()
     mapping = {}
     for _, row in df.iterrows():
         try:
@@ -61,127 +56,127 @@ def load_schedule_mapping(csv_file):
             logging.error(f"Error processing row: {row}. Exception: {e}")
     return mapping
 
-# Load schedule mapping once (from CSV)
 schedule_mapping = load_schedule_mapping(SCHEDULE_CSV)
 
 
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Chat ID: `{update.effective_chat.id}`", parse_mode="Markdown")
 
-# -------------------------------
-# Function: Scheduled Poll (Automatic)
-# -------------------------------
+
 async def scheduled_poll(bot, match_no, match_info):
-    """
-    Sends the poll for a given match (used by the scheduler).
-    This function uses the match details (from the CSV) to construct the poll.
-    """
-    match_name = match_info["Teams"]  # e.g., "KKR vs RCB"
+    match_name = match_info["Teams"]
     question = f"Match {match_no}: {match_name}\nVenue: {match_info['Venue']}\nWho will win?"
     options = match_name.split(" vs ")
-    
-    # Send poll to the designated group chat using positional arguments
+
     poll_message = await bot.send_poll(
         GROUP_CHAT_ID,
         question,
         options,
-        False,  # is_anonymous
-        None,   # poll type (None defaults to "regular")
-        False   # allows_multiple_answers
+        False,
+        None,
+        False
     )
-    # Save poll info in our global dictionary for later reference in poll answers
+
     polls[poll_message.poll.id] = {
         "match_no": match_no,
         "match_name": match_name,
         "options": options
     }
+
+    # Save poll mapping persistently
+    if os.path.exists(POLL_MAP_FILE):
+        with open(POLL_MAP_FILE, "r") as f:
+            poll_map = json.load(f)
+    else:
+        poll_map = {}
+    poll_map[poll_message.poll.id] = match_no
+    with open(POLL_MAP_FILE, "w") as f:
+        json.dump(poll_map, f)
+
     logging.info(f"[Scheduled] Poll posted for match {match_no}: {match_name}")
 
-# -------------------------------
-# Command: /startpoll <match_no> (Manual Trigger)
-# -------------------------------
+
 async def startpoll(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Manually starts a poll for a given match number using the schedule loaded from the CSV.
-    Usage: /startpoll <match_no>
-    """
     if not context.args:
         await update.message.reply_text("Usage: /startpoll <match_no>")
         return
-
     try:
         match_no = int(context.args[0])
     except ValueError:
         await update.message.reply_text("Match number must be an integer.")
         return
-
     match_info = schedule_mapping.get(match_no)
     if not match_info:
         await update.message.reply_text(f"No match found for match #{match_no}.")
         return
-
     match_name = match_info["Teams"]
     question = f"Match {match_no}: {match_name}\nVenue: {match_info['Venue']}\nWho will win?"
     options = match_name.split(" vs ")
-
     poll_message = await context.bot.send_poll(
         update.effective_chat.id,
         question,
         options,
-        False,  # is_anonymous
-        None,   # poll type (None defaults to "regular")
-        False   # allows_multiple_answers
+        False,
+        None,
+        False
     )
-
-    # Store poll info for later processing
     context.bot_data[poll_message.poll.id] = {
         "match_no": match_no,
         "match_name": match_name,
         "options": options
     }
+    if os.path.exists(POLL_MAP_FILE):
+        with open(POLL_MAP_FILE, "r") as f:
+            poll_map = json.load(f)
+    else:
+        poll_map = {}
+    poll_map[poll_message.poll.id] = match_no
+    with open(POLL_MAP_FILE, "w") as f:
+        json.dump(poll_map, f)
+
     logging.info(f"[Manual] Poll posted for match {match_no}: {match_name}")
 
-# -------------------------------
-# Poll Answer Handler: Capture Votes
-# -------------------------------
+
 async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Handles incoming poll answers. When a user votes, record their prediction in IPL_predictions.csv.
-    """
     answer = update.poll_answer
     poll_id = answer.poll_id
     user = answer.user
     option_ids = answer.option_ids
 
-    # Retrieve match details using the poll ID
-    poll_info = context.bot_data.get(poll_id) or polls.get(poll_id)
-    if not poll_info:
+    if os.path.exists(POLL_MAP_FILE):
+        with open(POLL_MAP_FILE, "r") as f:
+            poll_map = json.load(f)
+        match_no = poll_map.get(poll_id)
+    else:
         return
 
-    match_no = poll_info["match_no"]
-    match_name = poll_info["match_name"]
-    options = poll_info["options"]
+    if not match_no:
+        return
 
+    match_info = schedule_mapping.get(int(match_no))
+    if not match_info:
+        return
+
+    match_name = match_info["Teams"]
+    options = match_name.split(" vs ")
     chosen_team = options[option_ids[0]] if option_ids else None
     username = user.full_name
 
-    # Load existing predictions or create new DataFrame
     if os.path.exists(PREDICTIONS_CSV):
         df = pd.read_csv(PREDICTIONS_CSV)
     else:
         df = pd.DataFrame(columns=["MatchNo", "Match", "Username", "Prediction", "Correct"])
 
-    row_mask = (df["MatchNo"] == match_no) & (df["Username"] == username)
+    row_mask = (df["MatchNo"] == int(match_no)) & (df["Username"] == username)
     if df[row_mask].empty:
         new_row = {
-            "MatchNo": match_no,
+            "MatchNo": int(match_no),
             "Match": match_name,
             "Username": username,
             "Prediction": chosen_team,
             "Correct": ""
         }
         df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-
     else:
         df.loc[row_mask, "Prediction"] = chosen_team
         df.loc[row_mask, "Correct"] = ""

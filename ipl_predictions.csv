@@ -5,6 +5,9 @@ MatchNo,Match,Username,Prediction,Correct
 2,SRH vs RR,Arun,SRH,1.0
 2,SRH vs RR,Sai,SRH,1.0
 2,SRH vs RR,Abhi,RR,0.0
-3,CSK vs MI,Arun,MI,
-3,CSK vs MI,Sai,CSK,
-3,CSK vs MI,Abhi,MI,
+3,CSK vs MI,Arun,MI,0.0
+3,CSK vs MI,Sai,CSK,1.0
+3,CSK vs MI,Abhi,MI,0.0
+4,DC vs LSG,Arun,DC,
+4,DC vs LSG,Sai,LSG,
+4,DC vs LSG,Abhi,DC,
