@@ -20,7 +20,7 @@ nest_asyncio.apply()
 
 # === CONFIGURATION ===
 BOT_TOKEN = "7897221989:AAHZoD6r03Qj21v4za2Zha3XFwW5o5Hw4h8"        # Replace with your actual bot token
-GROUP_CHAT_ID = -1001234567890            # Replace with your Telegram group chat ID
+GROUP_CHAT_ID = -4607914574            # Replace with your Telegram group chat ID
 SCHEDULE_CSV = "ipl_schedule.csv"         # CSV file with the match schedule
 PREDICTIONS_CSV = "ipl_predictions.csv"   # CSV file to store user predictions
 
