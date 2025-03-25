@@ -32,62 +32,88 @@ async def commit_files_to_github():
         "Accept": "application/vnd.github+json"
     }
 
-    async with aiohttp.ClientSession(headers=headers) as session:
-        # Step 1: Get the latest commit SHA and tree SHA
-        async with session.get(f"https://api.github.com/repos/{repo}/git/ref/heads/{branch}") as r:
-            ref_data = await r.json()
-        commit_sha = ref_data["object"]["sha"]
+    try:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            logging.info("🔁 Getting latest commit SHA...")
+            async with session.get(f"https://api.github.com/repos/{repo}/git/ref/heads/{branch}") as r:
+                if r.status != 200:
+                    logging.error(f"❌ Failed to get branch ref: {await r.text()}")
+                    return
+                ref_data = await r.json()
 
-        async with session.get(f"https://api.github.com/repos/{repo}/git/commits/{commit_sha}") as r:
-            commit_data = await r.json()
-        base_tree = commit_data["tree"]["sha"]
+            commit_sha = ref_data["object"]["sha"]
+            logging.info(f"✅ Found latest commit SHA: {commit_sha}")
 
-        # Step 2: Prepare files
-        files_to_commit = ["ipl_predictions.csv", "poll_map.json"]
-        blobs = []
-        for file_path in files_to_commit:
-            if not os.path.exists(file_path):
-                continue
-            with open(file_path, "rb") as f:
-                content = base64.b64encode(f.read()).decode("utf-8")
-            async with session.post(f"https://api.github.com/repos/{repo}/git/blobs", json={
-                "content": base64.b64decode(content).decode("utf-8"),
-                "encoding": "utf-8"
+            async with session.get(f"https://api.github.com/repos/{repo}/git/commits/{commit_sha}") as r:
+                if r.status != 200:
+                    logging.error(f"❌ Failed to get commit data: {await r.text()}")
+                    return
+                commit_data = await r.json()
+
+            base_tree = commit_data["tree"]["sha"]
+
+            files_to_commit = ["ipl_predictions.csv", "poll_map.json"]
+            blobs = []
+
+            for file_path in files_to_commit:
+                if not os.path.exists(file_path):
+                    logging.warning(f"⚠️ File not found: {file_path}")
+                    continue
+
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                async with session.post(f"https://api.github.com/repos/{repo}/git/blobs", json={
+                    "content": content,
+                    "encoding": "utf-8"
+                }) as r:
+                    if r.status != 201:
+                        logging.error(f"❌ Blob creation failed for {file_path}: {await r.text()}")
+                        return
+                    blob_data = await r.json()
+
+                blobs.append({
+                    "path": file_path,
+                    "mode": "100644",
+                    "type": "blob",
+                    "sha": blob_data["sha"]
+                })
+
+            async with session.post(f"https://api.github.com/repos/{repo}/git/trees", json={
+                "base_tree": base_tree,
+                "tree": blobs
             }) as r:
-                blob_data = await r.json()
-            blobs.append({
-                "path": file_path,
-                "mode": "100644",
-                "type": "blob",
-                "sha": blob_data["sha"]
-            })
+                if r.status != 201:
+                    logging.error(f"❌ Tree creation failed: {await r.text()}")
+                    return
+                tree_data = await r.json()
 
-        # Step 3: Create tree
-        async with session.post(f"https://api.github.com/repos/{repo}/git/trees", json={
-            "base_tree": base_tree,
-            "tree": blobs
-        }) as r:
-            tree_data = await r.json()
-        new_tree_sha = tree_data["sha"]
+            async with session.post(f"https://api.github.com/repos/{repo}/git/commits", json={
+                "message": "📥 Update predictions and poll map",
+                "tree": tree_data["sha"],
+                "parents": [commit_sha],
+                "author": {
+                    "name": author_name,
+                    "email": author_email
+                }
+            }) as r:
+                if r.status != 201:
+                    logging.error(f"❌ Commit creation failed: {await r.text()}")
+                    return
+                new_commit = await r.json()
 
-        # Step 4: Create commit
-        async with session.post(f"https://api.github.com/repos/{repo}/git/commits", json={
-            "message": "📥 Update predictions and poll map",
-            "tree": new_tree_sha,
-            "parents": [commit_sha],
-            "author": {
-                "name": author_name,
-                "email": author_email
-            }
-        }) as r:
-            new_commit = await r.json()
+            async with session.patch(f"https://api.github.com/repos/{repo}/git/refs/heads/{branch}", json={
+                "sha": new_commit["sha"]
+            }) as r:
+                if r.status != 200:
+                    logging.error(f"❌ Failed to update ref: {await r.text()}")
+                    return
 
-        # Step 5: Update ref
-        await session.patch(f"https://api.github.com/repos/{repo}/git/refs/heads/{branch}", json={
-            "sha": new_commit["sha"]
-        })
+            logging.info("✅ GitHub commit successful.")
 
-        logging.info("✅ GitHub commit successful.")
+    except Exception as e:
+        logging.exception(f"🚨 Exception while committing to GitHub: {e}")
+
         
 
 # === CONFIGURATION ===
