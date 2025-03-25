@@ -17,6 +17,78 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import nest_asyncio
 
 nest_asyncio.apply()
+import base64
+import aiohttp
+
+async def commit_files_to_github():
+    repo = os.getenv("GITHUB_REPO")
+    branch = os.getenv("GITHUB_BRANCH", "main")
+    token = os.getenv("GITHUB_PAT")
+    author_name = os.getenv("BOT_COMMIT_NAME", "Bot")
+    author_email = os.getenv("BOT_COMMIT_EMAIL", "bot@example.com")
+
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github+json"
+    }
+
+    async with aiohttp.ClientSession(headers=headers) as session:
+        # Step 1: Get the latest commit SHA and tree SHA
+        async with session.get(f"https://api.github.com/repos/{repo}/git/ref/heads/{branch}") as r:
+            ref_data = await r.json()
+        commit_sha = ref_data["object"]["sha"]
+
+        async with session.get(f"https://api.github.com/repos/{repo}/git/commits/{commit_sha}") as r:
+            commit_data = await r.json()
+        base_tree = commit_data["tree"]["sha"]
+
+        # Step 2: Prepare files
+        files_to_commit = ["ipl_predictions.csv", "poll_map.json"]
+        blobs = []
+        for file_path in files_to_commit:
+            if not os.path.exists(file_path):
+                continue
+            with open(file_path, "rb") as f:
+                content = base64.b64encode(f.read()).decode("utf-8")
+            async with session.post(f"https://api.github.com/repos/{repo}/git/blobs", json={
+                "content": base64.b64decode(content).decode("utf-8"),
+                "encoding": "utf-8"
+            }) as r:
+                blob_data = await r.json()
+            blobs.append({
+                "path": file_path,
+                "mode": "100644",
+                "type": "blob",
+                "sha": blob_data["sha"]
+            })
+
+        # Step 3: Create tree
+        async with session.post(f"https://api.github.com/repos/{repo}/git/trees", json={
+            "base_tree": base_tree,
+            "tree": blobs
+        }) as r:
+            tree_data = await r.json()
+        new_tree_sha = tree_data["sha"]
+
+        # Step 4: Create commit
+        async with session.post(f"https://api.github.com/repos/{repo}/git/commits", json={
+            "message": "📥 Update predictions and poll map",
+            "tree": new_tree_sha,
+            "parents": [commit_sha],
+            "author": {
+                "name": author_name,
+                "email": author_email
+            }
+        }) as r:
+            new_commit = await r.json()
+
+        # Step 5: Update ref
+        await session.patch(f"https://api.github.com/repos/{repo}/git/refs/heads/{branch}", json={
+            "sha": new_commit["sha"]
+        })
+
+        logging.info("✅ GitHub commit successful.")
+        
 
 # === CONFIGURATION ===
 BOT_TOKEN = "7897221989:AAHZoD6r03Qj21v4za2Zha3XFwW5o5Hw4h8"
@@ -184,7 +256,9 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
         df.loc[row_mask, "Correct"] = ""
 
     df.to_csv(PREDICTIONS_CSV, index=False)
+    await commit_files_to_github()
     logging.info(f"{username} voted {chosen_team} for match {match_no} ({match_name}).")
+    
 
 # === /score Command ===
 async def score_match(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -213,8 +287,10 @@ async def score_match(update: Update, context: ContextTypes.DEFAULT_TYPE):
         lambda pred: 1 if pred == winner else 0
     )
     df.to_csv(PREDICTIONS_CSV, index=False)
+    await commit_files_to_github()
     await update.message.reply_text(f"Score updated for match {match_no}. Winner: {winner}")
     await update.message.reply_text(f"Results for match {match_no} have been recorded!")
+    
 
 # === /leaderboard Command ===
 async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
