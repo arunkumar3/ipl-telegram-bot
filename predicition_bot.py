@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 import asyncio
 import pandas as pd
 from datetime import datetime
@@ -15,27 +16,25 @@ from telegram.ext import (
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import nest_asyncio
 
-# Allow nested event loops (helpful if running in notebooks or certain IDEs)
 nest_asyncio.apply()
 
 # === CONFIGURATION ===
-BOT_TOKEN = "7897221989:AAHZoD6r03Qj21v4za2Zha3XFwW5o5Hw4h8"        # Replace with your actual bot token
-GROUP_CHAT_ID = -4607914574            # Replace with your Telegram group chat ID
-SCHEDULE_CSV = "ipl_schedule.csv"         # CSV file with the match schedule
-PREDICTIONS_CSV = "ipl_predictions.csv"   # CSV file to store user predictions
+BOT_TOKEN = "7897221989:AAHZoD6r03Qj21v4za2Zha3XFwW5o5Hw4h8"
+GROUP_CHAT_ID = -4607914574
+SCHEDULE_CSV = "ipl_schedule.csv"
+PREDICTIONS_CSV = "ipl_predictions.csv"
+POLL_MAP_FILE = "poll_map.json"  # ✅ FIXED: Added missing definition
 
-# Set up logging for debugging
+# === Logging ===
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
 
-# Global dictionary to store poll info (maps poll_id -> match details)
+# Global dictionary (in-memory fallback)
 polls = {}
 
-# -------------------------------
-# Helper Function to Load Schedule from CSV
-# -------------------------------
+# === Load Match Schedule from CSV ===
 def load_schedule_mapping(csv_file):
     df = pd.read_csv(csv_file)
     df.columns = df.columns.str.strip()
@@ -58,11 +57,11 @@ def load_schedule_mapping(csv_file):
 
 schedule_mapping = load_schedule_mapping(SCHEDULE_CSV)
 
-
+# === Get Chat ID ===
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Chat ID: `{update.effective_chat.id}`", parse_mode="Markdown")
 
-
+# === Scheduled Poll ===
 async def scheduled_poll(bot, match_no, match_info):
     match_name = match_info["Teams"]
     question = f"Match {match_no}: {match_name}\nVenue: {match_info['Venue']}\nWho will win?"
@@ -83,7 +82,6 @@ async def scheduled_poll(bot, match_no, match_info):
         "options": options
     }
 
-    # Save poll mapping persistently
     if os.path.exists(POLL_MAP_FILE):
         with open(POLL_MAP_FILE, "r") as f:
             poll_map = json.load(f)
@@ -92,10 +90,10 @@ async def scheduled_poll(bot, match_no, match_info):
     poll_map[poll_message.poll.id] = match_no
     with open(POLL_MAP_FILE, "w") as f:
         json.dump(poll_map, f)
-
     logging.info(f"[Scheduled] Poll posted for match {match_no}: {match_name}")
+    logging.info(f"Poll map updated: {poll_message.poll.id} → Match {match_no}")
 
-
+# === Manual Poll: /startpoll <match_no> ===
 async def startpoll(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text("Usage: /startpoll <match_no>")
@@ -109,9 +107,11 @@ async def startpoll(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not match_info:
         await update.message.reply_text(f"No match found for match #{match_no}.")
         return
+
     match_name = match_info["Teams"]
     question = f"Match {match_no}: {match_name}\nVenue: {match_info['Venue']}\nWho will win?"
     options = match_name.split(" vs ")
+
     poll_message = await context.bot.send_poll(
         update.effective_chat.id,
         question,
@@ -120,11 +120,13 @@ async def startpoll(update: Update, context: ContextTypes.DEFAULT_TYPE):
         None,
         False
     )
+
     context.bot_data[poll_message.poll.id] = {
         "match_no": match_no,
         "match_name": match_name,
         "options": options
     }
+
     if os.path.exists(POLL_MAP_FILE):
         with open(POLL_MAP_FILE, "r") as f:
             poll_map = json.load(f)
@@ -133,10 +135,10 @@ async def startpoll(update: Update, context: ContextTypes.DEFAULT_TYPE):
     poll_map[poll_message.poll.id] = match_no
     with open(POLL_MAP_FILE, "w") as f:
         json.dump(poll_map, f)
-
     logging.info(f"[Manual] Poll posted for match {match_no}: {match_name}")
+    logging.info(f"Poll map updated: {poll_message.poll.id} → Match {match_no}")
 
-
+# === Handle Poll Answers ===
 async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     answer = update.poll_answer
     poll_id = answer.poll_id
@@ -184,14 +186,8 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     df.to_csv(PREDICTIONS_CSV, index=False)
     logging.info(f"{username} voted {chosen_team} for match {match_no} ({match_name}).")
 
-# -------------------------------
-# Command: /score <match_no> <winner>
-# -------------------------------
+# === /score Command ===
 async def score_match(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Manually inputs the result of a match and updates predictions.
-    Usage: /score <match_no> <winner>
-    """
     if len(context.args) < 2:
         await update.message.reply_text("Usage: /score <match_no> <winner>")
         return
@@ -220,13 +216,8 @@ async def score_match(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Score updated for match {match_no}. Winner: {winner}")
     await update.message.reply_text(f"Results for match {match_no} have been recorded!")
 
-# -------------------------------
-# Command: /leaderboard
-# -------------------------------
+# === /leaderboard Command ===
 async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Displays the leaderboard by summing correct predictions per user.
-    """
     if not os.path.exists(PREDICTIONS_CSV):
         await update.message.reply_text("No predictions made yet.")
         return
@@ -245,28 +236,22 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg += f"{row['Username']}: {row['Correct']} points\n"
     await update.message.reply_text(msg, parse_mode="Markdown")
 
-# -------------------------------
-# Main Function: Start Bot and Scheduler
-# -------------------------------
+# === MAIN ===
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # Register command handlers
     app.add_handler(CommandHandler("startpoll", startpoll))
     app.add_handler(CommandHandler("score", score_match))
     app.add_handler(CommandHandler("leaderboard", leaderboard))
     app.add_handler(CommandHandler("getchatid", get_chat_id))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
 
-    # Set up APScheduler for automatic poll scheduling
     scheduler = AsyncIOScheduler()
     ist = pytz.timezone("Asia/Kolkata")
     now_utc = datetime.now(pytz.utc)
 
-    # Schedule a poll for every match from the schedule mapping
     for match_no, match_info in schedule_mapping.items():
         try:
-            # Combine Date and Poll Start Time from CSV (e.g., "22 Mar 2025" and "12:00 AM")
             match_date = datetime.strptime(match_info["Date"], "%d %b %Y")
             poll_start_time = datetime.strptime(match_info["PollStartTime"], "%I:%M %p").time()
             poll_start_dt_ist = ist.localize(datetime.combine(match_date, poll_start_time))
@@ -284,7 +269,7 @@ async def main():
             )
             logging.info(f"Scheduled poll for match {match_no} at {poll_start_dt_utc}")
         else:
-            logging.info(f"Poll start time for match {match_no} is in the past; skipping scheduling.")
+            logging.info(f"Poll time for match {match_no} is in the past; skipping.")
 
     scheduler.start()
     logging.info("Scheduler started with automatic poll jobs.")
