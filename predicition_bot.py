@@ -338,6 +338,18 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg += f"{row['Username']}: {row['Correct']} points\n"
     await update.message.reply_text(msg, parse_mode="Markdown")
 
+# === /commit Command ===
+async def commit_now(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("🔄 Trying to commit files to GitHub...")
+
+    try:
+        await commit_files_to_github()
+        await update.message.reply_text("✅ Files successfully committed to GitHub.")
+    except Exception as e:
+        logging.exception("❌ Exception during manual /commit")
+        await update.message.reply_text(f"❌ Commit failed: {e}")
+
+
 # === MAIN ===
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -347,6 +359,8 @@ async def main():
     app.add_handler(CommandHandler("leaderboard", leaderboard))
     app.add_handler(CommandHandler("getchatid", get_chat_id))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
+    app.add_handler(CommandHandler("commit", commit_now))
+
 
     scheduler = AsyncIOScheduler()
     ist = pytz.timezone("Asia/Kolkata")
