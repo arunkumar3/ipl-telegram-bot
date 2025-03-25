@@ -3,3 +3,4 @@ pandas
 apscheduler
 pytz
 nest_asyncio
+aiohttp
