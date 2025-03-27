@@ -11,6 +11,12 @@ MatchNo,Match,Username,Prediction,Correct
 4,DC vs LSG,Arun,DC,1.0
 4,DC vs LSG,Sai,LSG,0.0
 4,DC vs LSG,Abhi,DC,1.0
-5,GT vs PBKS,Arun,GT,
-5,GT vs PBKS,Sai,PBKS,
-5,GT vs PBKS,Abhi,GT,
+5,GT vs PBKS,Arun,GT,0.0
+5,GT vs PBKS,Sai,PBKS,1.0
+5,GT vs PBKS,Abhi,GT,0.0
+6,RR vs KKR,Arun,RR,0.0
+6,RR vs KKR,Sai,RR,0.0
+6,RR vs KKR,Abhi,KKR,1.0
+7,SRH vs LSG,Arun,SRH,
+7,SRH vs LSG,Sai,SRH,
+7,SRH vs LSG,Abhi,LSG
