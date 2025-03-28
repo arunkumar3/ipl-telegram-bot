@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "ipl-predicitions",
+  "private_key_id": "e5014e638a9f62c07294fe563edc787b1d17f652",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCrgInio4aU6CVS\nqhFJpqJ+/cVCd7WdXGPYwekiZ7iffI++44Czz+Ed2lWqaizX1QlnG22u/kGesBru\np+iru3DSg7EJz9kFa+XNKUMpPX8wcvP5tN9BRfsdrelcQjEMYhvEWb24FmpU4LP4\nuu5w8nBeFPjA7PAJ+eGQcVfHZkw6izfgn1toRzloc/ZDvmORtLZjUKVPypTCzAR4\nWf3W596q58p4fe2E9+V/oXvFkijGMyUN/YrS/w0Jm6vy8oI+OPk/Xab6KKcN/JhW\n1EZ6mmjWeyhMD/4cPv+8Lqee4PI73v0+NdLlDY7I0QQNvrYjisE32L4s9o+mzFyF\nq6Lv+vBJAgMBAAECggEAS1hVO3SME69Jdl+w6KKEkTX8C498An4sf3XxbmQTAD5B\nCKP6TwTs6aiaKhwrR0cYsmuibFbXjVfg/ShXV9spXdLtXFosBe25L8EI+H1D+40F\nEpcb3hlYkVluRFHwKniPqluitdVjMZbmekflqUlZhHvCLT/q1Pcq2cJxxfBzXORE\njMpB2q3bTU8aqJTn8epL7OT93h2bBAAM+uAmRp/pQL3vauWnWf+DWzIwl+APJFkr\npbMFSQbJNSTlKd54bPN+xocr9LRF5/xs55YnfB4JHTcoUzZmC2F/X7P29ym6+Trs\neH/dGv0gqHD7LdMp2cDkJnizfuie4yAuNM3ehcvVYQKBgQDaRVM6w+lXT+o6XrDy\nD87eKeWa9fX/ko7CgIEKrhKwylf9UJ5BFYSDe73BO6yA5ZCMu/L7ii0o+KlPOWBo\n2DnaM3cRqL52NpQEMs42s0LOPj851qo6Gx7SXqYXuSyBosby2QTMUEwcytN+4YA1\nu1/HwRqin82LBwEDXCNSReZ4vwKBgQDJJahTPkvnr+IUK8KuHxO+RMp5N19HJMKM\nWFORuJq18dqO+t+5hsqvGNLoeIkNV5AsEcAzj48UQgs8zFEi5kgjuR9lDoy8t85A\nmO+FeuYIUhi+WmEPUPBIGZLjTlUIyrDZo+Pw7pL24t/3/RlfyQYTgN8GEsdNyNha\neCq/mI+Q9wKBgGqJM9qXDSmkw/rBhTRhKuOdJ4i/TNb1veCJwHJqDI1l9hSaaOPz\nkL5sg23xpn0zj55hjnPgObKpzFny82+5OmOagx+HcY9ZjF2QPr7MOGtaTpn4gRXj\nbuPXdtJVe7e6r8iQzJq9Bql3BkwD3QRc9J8XTdzaiwS04nW1XzglDh0ZAoGBAJAM\nJMhAY7Fu9pOFZyy02rm2n91A9z2GqMBC/M3tivXjVqZwKMm/KuVL/LY4o8VnQLse\nlysVktxqE4wdsbkxetYCW+ZODiGT6+O84kMP6S5qRIgFR17lkr2/er7HuQPLy+yA\nfttqrtqZTNVWbtZ2qqBK+OxrhElDHRVk2xBMm/uvAoGAMu9IQonfpyahVnJdPkz1\nGmqsxL/LlsazwOGk7AmXdXIeGCiraHg1F3LvEotqqaJPxJIJKh1EJdunS/9HmSPJ\nLuWA5F/xCFrMOa2yUUVZh4hw2S15V/9DzS85XqzpSdHednTnbNkxlpONTFFg6j5Z\n9ZbEOwHD0aXk5M4xPNs8iAs=\n-----END PRIVATE KEY-----\n",
+  "client_email": "ipl-predictions@ipl-predicitions.iam.gserviceaccount.com",
+  "client_id": "102996933144575510283",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ipl-predictions%40ipl-predicitions.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
