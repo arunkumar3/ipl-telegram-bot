@@ -21,10 +21,10 @@ import gspread
 
 nest_asyncio.apply()
 
-creds_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+creds_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON_BASE64")
 
 if creds_json is None:
-    raise ValueError("❌ Environment variable 'GOOGLE_SERVICE_ACCOUNT_JSON' is not set!")
+    raise ValueError("❌ Environment variable 'GOOGLE_SERVICE_ACCOUNT_JSON_BASE64' is not set!")
 
 creds_dict = json.loads(creds_json)
 
