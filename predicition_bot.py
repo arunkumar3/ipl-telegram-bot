@@ -22,9 +22,12 @@ import gspread
 nest_asyncio.apply()
 
 # === Google Sheets Setup ===
-SERVICE_ACCOUNT_FILE = "ipl-predicitions-e5014e638a9f.json"
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+# Load from Railway environment variable
+creds_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+creds_dict = json.loads(creds_json)
+
+# Authenticate with gspread
+creds = Credentials.from_service_account_info(creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"])
 gc = gspread.authorize(creds)
 
 PREDICTIONS_SHEET_ID = "1iCENqo8p3o3twurO7-CSs490C1xrhxK7cNIsUJ4ThBA"
