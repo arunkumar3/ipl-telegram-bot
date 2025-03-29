@@ -130,6 +130,7 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     # 🔁 Fetch poll map from Google Sheets
     try:
         poll_map_df = pd.DataFrame(poll_map_sheet.get_all_records())
+        poll_map_df["poll_id"] = poll_map_df["poll_id"].astype(str)
         match_row = poll_map_df[poll_map_df["poll_id"] == str(poll_id)]
         if match_row.empty:
             logging.warning(f"No match found for poll_id: {poll_id}")
