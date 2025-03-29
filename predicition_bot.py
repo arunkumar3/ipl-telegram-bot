@@ -5,7 +5,7 @@ import asyncio
 from datetime import datetime
 import pytz
 import pandas as pd
-
+import base64
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
