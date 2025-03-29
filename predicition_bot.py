@@ -145,7 +145,9 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if not match_info:
         logging.warning(f"No match info found for match_no: {match_no}")
         return
-
+    if not option_ids:
+        logging.warning(f"{user.full_name} submitted an empty vote for poll {poll_id}. Skipping.")
+        return
     chosen_team = match_info['Teams'].split(" vs ")[option_ids[0]]
     username = user.full_name
 
