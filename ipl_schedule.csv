@@ -1,4 +1,4 @@
-﻿MatchNo, Date, Day, Teams, MatchTime , Venue , PollStartTime , PollEndTime 
+MatchNo, Date, Day, Teams, MatchTime , Venue , PollStartTime , PollEndTime 
 1, 22 Mar 2025 , Saturday , KKR vs RCB , 7:30 PM , Kolkata , 12:00 AM , 7:30 PM 
 2, 23 Mar 2025 , Sunday , SRH vs RR , 3:30 PM , Hyderabad , 12:00 AM , 3:30 PM 
 3, 23 Mar 2025 , Sunday , CSK vs MI , 7:30 PM , Chennai , 12:00 AM , 7:30 PM 
@@ -17,9 +17,9 @@
 16, 4 Apr 2025 , Friday , LSG vs MI , 7:30 PM , Lucknow , 12:00 AM , 7:30 PM 
 17, 5 Apr 2025 , Saturday , CSK vs DC , 3:30 PM , Chennai , 12:00 AM , 3:30 PM 
 18, 5 Apr 2025 , Saturday , PBKS vs RR , 7:30 PM , New Chandigarh , 12:00 AM , 7:30 PM 
-19, 6 Apr 2025 , Sunday , KKR vs LSG , 3:30 PM , Kolkata , 12:00 AM , 3:30 PM 
-20, 6 Apr 2025 , Sunday , SRH vs GT , 7:30 PM , Hyderabad , 12:00 AM , 7:30 PM 
-21, 7 Apr 2025 , Monday , MI vs RCB , 7:30 PM , Mumbai , 12:00 AM , 7:30 PM 
+19, 6 Apr 2025 , Sunday , SRH vs GT , 7:30 PM , Hyderabad , 12:00 AM , 7:30 PM 
+20, 7 Apr 2025 , Monday , MI vs RCB , 7:30 PM , Mumbai , 12:00 AM , 7:30 PM 
+21, 8 Apr 2025 ,Tuesday, KKR vs LSG , 3:30 PM , Kolkata , 12:00 AM , 3:30 PM 
 22, 8 Apr 2025 , Tuesday , PBKS vs CSK , 7:30 PM , New Chandigarh , 12:00 AM , 7:30 PM 
 23, 9 Apr 2025 , Wednesday , GT vs RR , 7:30 PM , Ahmedabad , 12:00 AM , 7:30 PM 
 24, 10 Apr 2025 , Thursday , RCB vs DC , 7:30 PM , Bengaluru , 12:00 AM , 7:30 PM 
@@ -72,4 +72,4 @@
 71, 20 May 2025 , Tuesday , Qualifier 1 , 7:30 PM , Hyderabad , 12:00 AM , 7:30 PM 
 72, 21 May 2025 , Wednesday , Eliminator , 7:30 PM , Hyderabad , 12:00 AM , 7:30 PM 
 73, 23 May 2025 , Friday , Qualifier 2 , 7:30 PM , Kolkata , 12:00 AM , 7:30 PM 
-74, 25 May 2025 , Sunday , Final , 7:30 PM , Kolkata , 12:00 AM , 7:30 PM 
+74, 25 May 2025 , Sunday , Final , 7:30 PM , Kolkata , 12:00 AM , 7:30 PM
