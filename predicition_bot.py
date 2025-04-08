@@ -195,6 +195,7 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # === MAIN ===
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
+
     app.add_handler(CommandHandler("startpoll", startpoll))
     app.add_handler(CommandHandler("score", score_match))
     app.add_handler(CommandHandler("leaderboard", leaderboard))
@@ -216,10 +217,19 @@ async def main():
             continue
 
         if poll_dt_utc > now_utc:
-            scheduler.add_job(scheduled_poll, 'date', run_date=poll_dt_utc, args=[app.bot, match_no, match_info],
-                              id=f"poll_{match_no}")
+            scheduler.add_job(
+                scheduled_poll,
+                'date',
+                run_date=poll_dt_utc,
+                args=[app.bot, match_no, match_info],
+                id=f"poll_{match_no}"
+            )
 
     scheduler.start()
+
+    # ✅ Disable webhook before polling
+    await app.bot.delete_webhook(drop_pending_updates=True)
+
     await app.run_polling()
 
 if __name__ == "__main__":
