@@ -195,6 +195,9 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # === MAIN ===
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
+    # Delete webhook before polling
+    await app.bot.delete_webhook(drop_pending_updates=True)
+    logging.info("✅ Webhook deleted before polling.")
 
     app.add_handler(CommandHandler("startpoll", startpoll))
     app.add_handler(CommandHandler("score", score_match))
