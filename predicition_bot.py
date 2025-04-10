@@ -70,7 +70,7 @@ def save_predictions_df(df):
 def get_poll_map():
     try:
         rows = poll_map_sheet.get_all_records()
-        return {row["PollID"]: row["MatchNo"] for row in rows if "PollID" in row and "MatchNo" in row}
+        return {row["poll_id"]: row["match_no"] for row in rows if "poll_id" in row and "match_no" in row}
     except Exception as e:
         logging.error(f"Error in get_poll_map: {e}")
         return {}  # Return an empty dict in case of error
@@ -92,7 +92,7 @@ def load_schedule_mapping(csv_file):
 
         for _, row in df.iterrows():
             try:
-                match_no = int(str(row["MatchNo"]).strip())
+                match_no = int(str(row["match_no"]).strip())
                 schedule_mapping[match_no] = {
                     "Date": str(row["Date"]).strip(),
                     "Day": str(row["Day"]).strip(),
@@ -168,13 +168,13 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
         option_ids = answer.option_ids
 
         poll_map_df = pd.DataFrame(poll_map_sheet.get_all_records())
-        poll_map_df["PollID"] = poll_map_df["PollID"].astype(str)  # Ensure PollID is treated as string
-        match_row = poll_map_df[poll_map_df["PollID"] == str(poll_id)]
+        poll_map_df["poll_id"] = poll_map_df["poll_id"].astype(str)  # Ensure poll_id is treated as string
+        match_row = poll_map_df[poll_map_df["poll_id"] == str(poll_id)]
 
         if match_row.empty:
             logging.warning(f"No match found for poll_id: {poll_id}")
             return
-        match_no = int(match_row.iloc[0]["MatchNo"])
+        match_no = int(match_row.iloc[0]["match_no"])
 
         match_info = schedule_mapping.get(match_no)
         if not match_info:
@@ -188,12 +188,12 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         df = get_predictions_df()
         if df.empty:
-            df = pd.DataFrame(columns=["MatchNo", "Match", "Username", "Prediction", "Correct"])
-        row_mask = (df["MatchNo"] == int(match_no)) & (df["Username"] == username)
+            df = pd.DataFrame(columns=["match_no", "Match", "Username", "Prediction", "Correct"])
+        row_mask = (df["match_no"] == int(match_no)) & (df["Username"] == username)
 
         if df[row_mask].empty:
             new_row = pd.DataFrame([[int(match_no), match_info['Teams'], username, chosen_team, ""]],
-                                   columns=["MatchNo", "Match", "Username", "Prediction", "Correct"])
+                                   columns=["match_no", "Match", "Username", "Prediction", "Correct"])
             df = pd.concat([df, new_row], ignore_index=True)
         else:
             df.loc[row_mask, "Prediction"] = chosen_team
@@ -214,7 +214,7 @@ async def score_match(update: Update, context: ContextTypes.DEFAULT_TYPE):
         winner = context.args[1]
 
         df = get_predictions_df()
-        df.loc[df["MatchNo"] == match_no, "Correct"] = df[df["MatchNo"] == match_no]["Prediction"].apply(
+        df.loc[df["match_no"] == match_no, "Correct"] = df[df["match_no"] == match_no]["Prediction"].apply(
             lambda x: 1 if x == winner else 0)
         save_predictions_df(df)
         await update.message.reply_text(f"Score updated for match {match_no}. Winner: {winner}")
