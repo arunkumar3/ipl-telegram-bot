@@ -31,7 +31,7 @@ POLL_MAP_SHEET_ID = "1LogmznPifIPt7GQQPQ7UndHOup4Eo55ThraIUMeH2uE"
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,  # Set the desired logging level here
+    level=logging.INFO,
 )
 
 polls = {}
@@ -67,6 +67,7 @@ def save_predictions_df(df):
         logging.error(f"Error in save_predictions_df: {e}")
 
 
+
 def get_poll_map():
     try:
         rows = poll_map_sheet.get_all_records()
@@ -76,11 +77,13 @@ def get_poll_map():
         return {}  # Return an empty dict in case of error
 
 
+
 def save_poll_id(poll_id, match_no):
     try:
         poll_map_sheet.append_row([str(poll_id), match_no])
     except Exception as e:
         logging.error(f"Error in save_poll_id: {e}")
+
 
 
 # === Helper: Load Schedule ===
@@ -120,6 +123,7 @@ async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Chat ID: `{update.effective_chat.id}`", parse_mode="Markdown")
     except Exception as e:
         logging.error(f"Error in get_chat_id: {e}")
+
 
 
 async def scheduled_poll(bot, match_no, match_info):
@@ -251,24 +255,33 @@ async def error_handler(update: Update, context: CallbackContext):
 
 
 
-async def check_and_delete_webhook(bot):
-    """Check for and delete any active webhooks."""
-    try:
-        webhook_info = await bot.get_webhook_info()
-        if webhook_info.url:
-            logging.warning("Webhook found, deleting...")
-            await bot.delete_webhook(drop_pending_updates=True)
-            logging.info("Webhook deleted.")
-        else:
-            logging.info("Webhook is not active.")
-    except Exception as e:
-        logging.error(f"Error checking/deleting webhook: {e}")
+async def check_and_delete_webhook(bot, retries=3, delay=5):
+    """Check for and delete any active webhooks with retries."""
+    for attempt in range(retries):
+        try:
+            webhook_info = await bot.get_webhook_info()
+            if webhook_info.url:
+                logging.warning(f"Webhook found, deleting... (Attempt {attempt + 1}/{retries})")
+                await bot.delete_webhook(drop_pending_updates=True)
+                logging.info("Webhook deleted.")
+                return  # Exit the function if successful
+            else:
+                logging.info("Webhook is not active.")
+                return
+        except Exception as e:
+            logging.error(f"Error deleting webhook: {e} (Attempt {attempt + 1}/{retries})")
+            if attempt < retries - 1:
+                await asyncio.sleep(delay)  # Wait before retrying
+    logging.error("Failed to delete webhook after multiple retries.")  # Log if all retries fail
 
 
 
 async def main():
     """Start the bot."""
     app = ApplicationBuilder().token(BOT_TOKEN).build()
+
+    # Delete webhook at the very start, with retries
+    await check_and_delete_webhook(app.bot)
 
     # Add handlers
     app.add_handler(CommandHandler("startpoll", startpoll))
@@ -278,8 +291,7 @@ async def main():
     app.add_handler(PollAnswerHandler(handle_poll_answer))
     app.add_error_handler(error_handler)
 
-    # Initial check and delete webhook
-    await check_and_delete_webhook(app.bot)
+
 
     # Create a scheduler
     scheduler = AsyncIOScheduler()
@@ -312,7 +324,7 @@ async def main():
     async def periodic_check():
         while True:
             await check_and_delete_webhook(app.bot)
-            await asyncio.sleep(600)  # Check every 10 minutes (adjust as needed)
+            await asyncio.sleep(300)  # Check every 5 minutes (more frequent)
 
     # Run the bot and the periodic check concurrently
     try:
