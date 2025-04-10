@@ -11,7 +11,8 @@ from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
     PollAnswerHandler,
-    ContextTypes
+    ContextTypes,
+    CallbackContext,
 )
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import nest_asyncio
@@ -21,35 +22,47 @@ import gspread
 
 nest_asyncio.apply()
 
-creds_json = """
-eyJ0eXBlIjoic2VydmljZV9hY2NvdW50IiwicHJvamVjdF9pZCI6ImlwbC1wcmVkaWNpdGlvbnMiLCJwcml2YXRlX2tleV9pZCI6IjFlMmM4MGRiZjdhOTVlMjJmMDYyMmE1NDE5YTk5NDVhMDZmZWU3ZDUiLCJwcml2YXRlX2tleSI6Ii0tLS0tQkVHSU4gUFJJVkFURSBLRVktLS0tLVxuTUlJRXZnSUJBREFOQmdrcWhraUc5dzBCQVFFRkFBU0NCS2d3Z2dTa0FnRUFBb0lCQVFEMmxiSlF5UmpNRWRQZ1xud2VYSyt4SnNXRENOUzdFcE8yekpaL3pNblptdWNocjJ2UG1reE1aYjlNMVc4OXBSSW8ycVV6YVhHRzBha0puRVxuLytKNlIrT1pnMGVyZTYrbG5VQVpzRW5NS0hlNHlTeVZaRnRqTjhKb1BzS2lSWU5LbzFxT2xCT3lqOTM1RUVUT1xuS3NNbU5EM0NHZEJMamhUTm9wc0EvZWJwaXJSeUNEUElxZ2dFYnN1TzZPTkp1R2t2aFduRXprdUNkZ0JtWXM0bFxuVXZvKytsV3Foa0J1aVM0bTdEQlk4UUY4RjVBMXFTMEYvU3k1QjVnQWJNa3YvSVNHQmdWTGo4bWlsQWJUN3NWcVxuOWRVSW5yRzZKR2UrNVJaL3hsS0JCMzRxTzNiMXdoRTVNSk9XRzZwNUVVVTY1SVBFR3BiVm44TytjVVF4eFRrS1xuWEwzSGo0SExBZ01CQUFFQ2dnRUFMU3RNeDdtZW5qc2h5Y2thOCt5NytqYkpaZ2lZZ2tvTmFuTnUvbmhjSDNWdFxuZFFjMjM3VGY5UlpKeXdUT1dCQnhUT01EVy9nd2ZDNUN6TEJtNXlsbUNzZmVpQTRYSmNwQlpMTkRRVytrUnFnclxuVDQ1Ym96Z2lsMy92blZRSWNkS3Nrdk9URENHSWNzaEZJbEw0L25XUlhvM2w5d0VtMUdoVjVuK2NIZW0zbGkrSVxuYUhWTGhxdmpLUDgydUJ6aktlMnU4Q0tDQ25kdko1QmVzQzYyY3VtVkhZYnRSWFVsOHArbjBpZ2hhdkV6TWxXOFxuTEczSS9XeEFDNWNvbTduaGNEV2l2ays4VXdQL3lUZHdUT09UdU9EN3Njb05xbm9zb3JxOXEzRUJyTFFzUGtOZ1xudmhhcEp6bFZKTUdHeHNhVGhuUEFBNzhiTE5hVEVYUSs2WUVpemVFZXVRS0JnUUQ3d1M5MVpIUVdMQm5BS2Y4Zlxuci9vL1QxVURSY1dwYlhVaWVTTnhSZi82VDBkVnJQZG5WM3RKdlRIL1ZPMHlpMkdMVmV4N0RuZEdnUFlZR3hSclxuOTdYQmkyQ1paYXk3cWx0YWRlWkN1eUc3WlFKeTZ1TmRHRnM3RWwweHpCTEc0Q01lc3B5WWh5OFNoaTVCTmYyR1xuSnl0SXVXaUJ0Q0hwWGR4RG5ka2FwRWJBM3dLQmdRRDZ2akZvcmpHazF6WVpBbGphSCtLcHRLdC9YSDZwYng1ZVxueVVPQXFmM1ZDQWx3aVpycWlKd1N4bnM2SU13eHREMWlrRnRNb0doKzRUWG5ZRXlvbEUzYklsU2UzOXVubVdyMFxuVFJIR3RWMmxUZk9oUklTWEIvRFVlRG01WFAxRnV1b3VEYmxMRjJhbG1ETndycDIycFFnK3FTV0VoL1YrM1pBeVxuMG9JTmU0YkFsUUtCZ0g2MWY4WnM5Y1NIRTdyVktGUHhoVmxCKzM2M0trSVpGa0J3aWZja0RTOFZvY2lzVXFVUFxuc2J5dVhiQ3VOT2dnb01xNVIxbTBNVElxRERLYnhvNkUwVlVGYW13cWNXTE8za1hNVzBVdzNFeHVEV3A3Y0UzVlxueVcwVTFCVVJLazR3VjF6Rzl1d0o5aFl6dEtvYm0ydGU0WGtyNEQ2UHhCV3BxUWZiTlg4a09Yd3ZBb0dCQUo1MFxuNHpTTUlNTlRYZFNnTHhacFlBeHZLSkhzR2Y5cFFZQVZJSnVHMGVwMmtjQ1V0Vm5SeXcveWJwMWxiS1ZjaWc1blxudThySTlFQjZnbDRkOVZQenBOLys2Z3NjM09zbGdQbXlXckdBbkJXREZadXNlVDRZdnBFSENUT2pHRXVndTYwdVxuN3hJTlQ4a0dUanUvbmR0Mm42YzVyWVA3aDZFTTA3dktYSFc0d29laEFvR0JBTDhEMHRIM1JKb05sUFFNYTVBd1xuUEdXS01VbVNTNy90eXg3TEh2Zm92YjVjUHNyK2hMT1laKytiUWRIcUh2alBIREx3RWYxQXBsU2dvcVlNSEgzQ1xuSjI5cHhGL3oyMXJVTG1mRS92WTRJNHpYWHZiQTEyT1hrakJBQkQwZzJtQTVRcStFVlNDR2pwNlRreS9oaTYyWlxuY0lXOWxZS1RUWDk2WEg1dm5WL00yUXV0XG4tLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tXG4iLCJjbGllbnRfZW1haWwiOiJpcGwtcHJlZGljdGlvbnNAaXBsLXByZWRpY2l0aW9ucy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsImNsaWVudF9pZCI6IjEwMjk5NjkzMzE0NDU3NTUxMDI4MyIsImF1dGhfdXJpIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tL28vb2F1dGgyL2F1dGgiLCJ0b2tlbl91cmkiOiJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsImF1dGhfcHJvdmlkZXJfeDUwOV9jZXJ0X3VybCI6Imh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL29hdXRoMi92MS9jZXJ0cyIsImNsaWVudF94NTA5X2NlcnRfdXJsIjoiaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vcm9ib3QvdjEvbWV0YWRhdGEveDUwOS9pcGwtcHJlZGljdGlvbnMlNDBpcGwtcHJlZGljaXRpb25zLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwidW5pdmVyc2VfZG9tYWluIjoiZ29vZ2xlYXBpcy5jb20ifQ==
-"""
-
-creds_dict = json.loads(base64.b64decode(creds_json).decode("utf-8"))
-
-creds = Credentials.from_service_account_info(
-    creds_dict,
-    scopes=["https://www.googleapis.com/auth/spreadsheets"]
-)
-gc = gspread.authorize(creds)
-
-PREDICTIONS_SHEET_ID = "1iCENqo8p3o3twurO7-CSs490C1xrhxK7cNIsUJ4ThBA"
-POLL_MAP_SHEET_ID = "1LogmznPifIPt7GQQPQ7UndHOup4Eo55ThraIUMeH2uE"
-
-pred_sheet = gc.open_by_key(PREDICTIONS_SHEET_ID).sheet1
-poll_map_sheet = gc.open_by_key(POLL_MAP_SHEET_ID).sheet1
-
 # === Config ===
 BOT_TOKEN = "7897221989:AAHZoD6r03Qj21v4za2Zha3XFwW5o5Hw4h8"
 GROUP_CHAT_ID = -4607914574
 SCHEDULE_CSV = "ipl_schedule.csv"
+PREDICTIONS_SHEET_ID = "1iCENqo8p3o3twurO7-CSs490C1xrhxK7cNIsUJ4ThBA"
+POLL_MAP_SHEET_ID = "1LogmznPifIPt7GQQPQ7UndHOup4Eo55ThraIUMeH2uE"
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    level=logging.INFO,
 )
 
 polls = {}
+
+# === Google Sheets Interaction ===
+creds_json = """
+eyJ0eXBlIjoic2VydmljZV9hY2NvdW50IiwicHJvamVjdF9pZCI6ImlwbC1wcmVkaWN0aW9ucyIsInByaXZhdGVfa2V5X2lkIjoiMWUyYzgwZGJmN2E5NWUyMmYwNjIyYTU0MTlhOTk0NWEwNmZlZTdkNSIsInByaXZhdGVfa2V5IjoiLS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tXG5NSUlFdmdJQkFEQU5CZ2txaGtpRzl3MEJBUUVGRUFBU0NCS2d3Z2dTa0FnRUFBb0lCQVFEMmxiSlF5UmpNRWRQZ1xud2VYSyt4SnNXRENOUzdFcE8yekpaL3pNblptdWNocjJ2UG1reE1aYjlNMVc4OXBSSW8ycVV6YVhHRzBha0puRVxuLytKNlIrT1pnMGVyZTYrbG5VQVpzRW5NS0hlNHlTeVZaRnRqTjhKb1BzS2lSWU5LbzFxT2xCT3lqOTM1RUVUT1xuS3NNbU5EM0NHZEJMamhUTm9wc0EvZWJwaXJSeUNEUElxZ2dFYnN1TzZPTkp1R2t2aFduRXprdUNkZ0JtWXM0bFxuVXZvKytsV3Foa0J1aVM0bTdEQlk4UUY4RjVBMXFTMEYvU3k1QjVnQWJNa3YvSVNHQmdWTGo4bWlsQWJUN3NWcVxuOWRVSW5yRzZKR2UrNVJaL3hsS0JCMzRxTzNiMXdoRTVNSk9XRzZwNUVVVTY1SVBFR3BiVm44TytjVVF4eFRrS1xuWEwzSGo0SExBZ01CQUFFQ2dnRUFMU3RNeDdtZW5qc2h5Y2thOCt5NytqYkpaZ2lZZ2tvTmFuTnUvbmhjSDNWdFxuZFFjMjM3VGY5UlpKeXdUT1dCQnhUT01EVy9nd2ZDNUN6TEJtNXlsbUNzZmVpQTRYSmNwQlpMTkRRVytrUnFnclxuVDQ1Ym96Z2lsMy92blZRSWNkS3Nrdk9URENHSWNzaEZJbEw0L25XUlhvM2w5d0VtMUdoVjVuK2NIZW0zbGkrSVxuYUhWTGhxdmpLUDgydUJ6aktlMnU4Q0tDQ25kdko1QmVzQzYyY3VtVkhZYnRSWFVsOHArbjBpZ2hhdkV6TWxXOFxuTEczSS9XeEFDNWNvbTduaGNEV2l2ays4VXdQL3lUZHdUT09UdU9EN3Njb05xbm9zb3JxOXEzRUJyTFFzUGtOZ1xudmhhcEp6bFZKTUdHeHNhVGhuUEFBNzhiTE5hVEVYUSs2WUVpemVFZXVRS0JnUUQ3d1M5MVpIUVdMQm5BS2Y4Zlxuci9vL1QxVURSY1dwYlhVaWVTTnhSZi82VDBkVnJQZG5WM3RKdlRIL1ZPMHlpMkdMVmV4N0RuZEdnUFlZR3hSclxuOTdYQmkyQ1paYXk3cWx0YWRlWkN1eUc3WlFKeTZ1TmRHRnM3RWwweHpCTEc0Q01lc3B5WWh5OFNoaTVCTmYyR1xuSnl0SXVXaUJ0Q0hwWGR4RG5ka2FwRWJBM3dLQmdRRDZ2akZvcmpHazF6WVpBbGphSCtLcHRLdC9YSDZwYng1ZVxueVVPQXFmM1ZDQWx3aVpycWlKd1N4bnM2SU13eHREMWlrRnRNb0doKzRUWG5ZRXlvbEUzYklsU2UzOXVubVdyMFxuVFJIR3RWMmxUZk9oUklTWEIvRFVlRG01WFAxRnV1b3VEYmxMRjJhbG1ETndycDIycFFnK3FTV0VoL1YrM1pBeVxuMG9JTmU0YkFsUUtCZ0g2MWY4WnM5Y1NIRTdyVktGUHhoVmxCKzM2M0trSVpGa0J3aWZja0RTOFZvY2lzVXFVUFxuc2J5dVhiQ3VOT2dnb01xNVIxbTBNVElxRERLYnhvNkUwVlVGYW13cWNXTE8za1hNVzBVdzNFeHVEV3A3Y0UzVlxueVcwVTFCVVJLazR3VjF6Rzl1d0o5aFl6dEtvYm0ydGU0WGtyNEQ2UHhCV3BxUWZiTlg4a09Yd3ZBb0dCQUo1MFxuNHpTTUlNTlRYZFNnTHhacFlBeHZLSkhzR2Y5cFFZQVZJSnVHMGVwMmtjQ1V0Vm5SeXcveWJwMWxiS1ZjaWc1blxudThySTlFQjZnbDRkOVZQenBOLys2Z3NjM09zbGdQbXlXckdBbkJXREZadXNlVDRZdnBFSENUT2pHRXVndTYwdVxuN3hJTlQ4a0dUanUvbmR0Mm42YzVyWVA3aDZFTTA3dktYSFc0d29laEFvR0JBTDhEMHRIM1JKb05sUFFNYTVBd1xuUEdXS01VbVNTNy90eXg3TEh2Zm92YjVjUHNyK2hMT1laKytiUWRIcUh2alBIREx3RWYxQXBsU2dvcVlNSEgzQ1xuSjI5cHhGL3oyMXJVTG1mRS92WTRJNHpYWHZiQTEyT1hrakJBQkQwZzJtQTVRcStFVlNDR2pwNlRreS9oaTYyWlxuY0lXOWxZS1RUWDk2WEg1dm5WL00yUXV0XG4tLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tXG4iLCJjbGllbnRfZW1haWwiOiJpcGwtcHJlZGljdGlvbnNAaXBsLXByZWRpY3Rpb25zLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiY2xpZW50X2lkIjoiMTAyOTk2OTMzMTQ0NTc1NTEwMjgzIiwiYXV0aF91cmkiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvYXV0aCIsInRva2VuX3VyaSI6Imh0dHBzOi8vb2F1dGgyLmdvb2dsZWFwaXMuY29tL3Rva2VuIiwiYXV0aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjoiaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vb2F1dGgyL3YxL2NlcnRzIiwiY2xpZW50X3g1MDlfY2VydF91cmwiOiJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9yb2JvdC92MS9tZXRhZGF0YS94NTA5L2lwbC1wcmVkaWN0aW9ucyU0MGlwbC1wcmVkaWN0aW9ucy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsInVuaXZlcnNlX2RvbWFpbiI6Imdvb2dsZWFwaXMuY29tIn0=
+"""
+creds_dict = json.loads(base64.b64decode(creds_json).decode("utf-8"))
+creds = Credentials.from_service_account_info(
+    creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"]
+)
+gc = gspread.authorize(creds)
+
+pred_sheet = gc.open_by_key(PREDICTIONS_SHEET_ID).sheet1
+poll_map_sheet = gc.open_by_key(POLL_MAP_SHEET_ID).sheet1
+
+def get_predictions_df():
+    data = pred_sheet.get_all_records()
+    return pd.DataFrame(data)
+
+def save_predictions_df(df):
+    pred_sheet.clear()
+    pred_sheet.update([df.columns.values.tolist()] + df.values.tolist())
+
+def get_poll_map():
+    rows = poll_map_sheet.get_all_records()
+    return {row["PollID"]: row["MatchNo"] for row in rows if "PollID" in row and "MatchNo" in row}
+
+def save_poll_id(poll_id, match_no):
+    poll_map_sheet.append_row([str(poll_id), match_no])
 
 # === Helper: Load Schedule ===
 def load_schedule_mapping(csv_file):
@@ -66,29 +79,13 @@ def load_schedule_mapping(csv_file):
                 "MatchTime": str(row["MatchTime"]).strip(),
                 "Venue": str(row["Venue"]).strip(),
                 "PollStartTime": str(row["PollStartTime"]).strip(),
-                "PollEndTime": str(row["PollEndTime"]).strip()
+                "PollEndTime": str(row["PollEndTime"]).strip(),
             }
         except Exception as e:
             logging.error(f"Error processing row: {row}. Exception: {e}")
     return mapping
 
 schedule_mapping = load_schedule_mapping(SCHEDULE_CSV)
-
-# === Google Sheets Interaction ===
-def get_predictions_df():
-    data = pred_sheet.get_all_records()
-    return pd.DataFrame(data)
-
-def save_predictions_df(df):
-    pred_sheet.clear()
-    pred_sheet.update([df.columns.values.tolist()] + df.values.tolist())
-
-def get_poll_map():
-    rows = poll_map_sheet.get_all_records()
-    return {row["PollID"]: row["MatchNo"] for row in rows if "PollID" in row and "MatchNo" in row}
-
-def save_poll_id(poll_id, match_no):
-    poll_map_sheet.append_row([str(poll_id), match_no])
 
 # === Bot Commands and Logic ===
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -126,8 +123,6 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     poll_id = answer.poll_id
     user = answer.user
     option_ids = answer.option_ids
-
-    # 🔁 Fetch poll map from Google Sheets
     try:
         poll_map_df = pd.DataFrame(poll_map_sheet.get_all_records())
         poll_map_df["poll_id"] = poll_map_df["poll_id"].astype(str)
@@ -140,7 +135,6 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logging.error(f"Error fetching poll_map: {e}")
         return
 
-    # Get match info from preloaded schedule mapping
     match_info = schedule_mapping.get(match_no)
     if not match_info:
         logging.warning(f"No match info found for match_no: {match_no}")
@@ -161,7 +155,6 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
         else:
             df.loc[row_mask, "Prediction"] = chosen_team
             df.loc[row_mask, "Correct"] = ""
-
         save_predictions_df(df)
         logging.info(f"{username} voted {chosen_team} for match {match_no}.")
     except Exception as e:
@@ -192,10 +185,16 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg += f"{row['Username']}: {row['Correct']} points\n"
     await update.message.reply_text(msg, parse_mode="Markdown")
 
+async def error_handler(update: Update, context: CallbackContext):
+    logging.error(f"Update {update} caused error {context.error}")
+    try:
+        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text=f"An error occurred: {context.error}")
+    except Exception as e:
+        logging.error(f"Error sending error message: {e}")
+
 # === MAIN ===
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
-    # Delete webhook before polling
     try:
         webhook_info = await app.bot.get_webhook_info()
         if webhook_info.url:
@@ -205,13 +204,13 @@ async def main():
             logging.info("✅ No webhook was active")
     except Exception as e:
         logging.error(f"Error deleting webhook: {e}")
-    logging.info("✅ Webhook deleted before polling.")
 
     app.add_handler(CommandHandler("startpoll", startpoll))
     app.add_handler(CommandHandler("score", score_match))
     app.add_handler(CommandHandler("leaderboard", leaderboard))
     app.add_handler(CommandHandler("getchatid", get_chat_id))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
+    app.add_error_handler(error_handler)
 
     scheduler = AsyncIOScheduler()
     ist = pytz.timezone("Asia/Kolkata")
@@ -233,14 +232,11 @@ async def main():
                 'date',
                 run_date=poll_dt_utc,
                 args=[app.bot, match_no, match_info],
-                id=f"poll_{match_no}"
+                id=f"poll_{match_no}",
             )
 
     scheduler.start()
-
-
     await app.run_polling()
 
 if __name__ == "__main__":
     asyncio.run(main())
-
