@@ -196,7 +196,15 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     # Delete webhook before polling
-    await app.bot.delete_webhook(drop_pending_updates=True)
+    try:
+        webhook_info = await app.bot.get_webhook_info()
+        if webhook_info.url:
+            await app.bot.delete_webhook(drop_pending_updates=True)
+            logging.info("✅ Webhook deleted before polling.")
+        else:
+            logging.info("✅ No webhook was active")
+    except Exception as e:
+        logging.error(f"Error deleting webhook: {e}")
     logging.info("✅ Webhook deleted before polling.")
 
     app.add_handler(CommandHandler("startpoll", startpoll))
@@ -230,8 +238,6 @@ async def main():
 
     scheduler.start()
 
-    # ✅ Disable webhook before polling
-    await app.bot.delete_webhook(drop_pending_updates=True)
 
     await app.run_polling()
 
