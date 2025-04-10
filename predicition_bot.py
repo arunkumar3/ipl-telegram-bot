@@ -324,7 +324,7 @@ async def main():
     async def periodic_check():
         while True:
             await check_and_delete_webhook(app.bot)
-            await asyncio.sleep(300)  # Check every 5 minutes (more frequent)
+            await asyncio.sleep(30)  # Check every 5 minutes (more frequent)
 
     # Run the bot and the periodic check concurrently
     try:
