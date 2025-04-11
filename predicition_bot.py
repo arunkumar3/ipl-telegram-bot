@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 def authorize_gspread():
     """Authorizes Google Sheets API client."""
     try:
-        creds_dict = json.loads(base64.b64decode(SERVICE_ACCOUNT_JSON).decode("utf-8"))
+        creds_dict = json.loads(base64.b64decode(creds_json).decode("utf-8"))
         creds = Credentials.from_service_account_info(
             creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"]
         )
