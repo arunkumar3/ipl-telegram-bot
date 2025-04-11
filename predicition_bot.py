@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 def authorize_gspread():
     """Authorizes Google Sheets API client."""
     try:
-        creds_dict = json.loads(base64.b64decode(creds_json).decode("utf-8"))
+        creds_dict = json.loads(base64.b64decode(SERVICE_ACCOUNT_JSON).decode("utf-8"))
         creds = Credentials.from_service_account_info(
             creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"]
         )
@@ -49,6 +49,7 @@ def authorize_gspread():
     except Exception as e:
         logger.error(f"Error authorizing Google Sheets: {e}")
         raise
+
 
 
 def get_sheet(gc, sheet_id):
@@ -88,7 +89,7 @@ def get_poll_map(sheet):
     try:
         rows = sheet.get_all_records()
         return {
-            str(row["poll_id"]): int(row["match_no"])
+            str(row["poll_id"]): int(row["MatchNo"])
             for row in rows
             if "poll_id" in row and "MatchNo" in row
         }
@@ -346,14 +347,14 @@ async def error_handler(update: Update, context: CallbackContext):
 
 
 
-async def check_and_delete_webhook(bot, retries=3, delay=5):
+async def check_and_delete_webhook(bot, retries=5, delay=30):  # Increased retries and delay
     """Checks for and deletes any active webhooks with retries."""
     for attempt in range(retries):
         try:
             webhook_info = await bot.get_webhook_info()
             if webhook_info.url:
                 logger.warning(
-                    f"Webhook found, deleting... (Attempt {attempt + 1}/{retries})"
+                    f"Webhook found, deleting... (Attempt {attempt + 1}/{retries}). URL: {webhook_info.url}"  # Log the URL
                 )
                 await bot.delete_webhook(drop_pending_updates=True)
                 logger.info("Webhook deleted.")
@@ -430,8 +431,8 @@ async def main():
         while True:
             await check_and_delete_webhook(app.bot)
             await asyncio.sleep(
-                30
-            )  # Check every 5 minutes (more frequent, adjust as needed)
+                1800
+            )  # Check every 30 minutes (increased interval)
 
     # Run the bot and the periodic check concurrently
     try:
