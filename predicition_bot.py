@@ -11,53 +11,67 @@ from telegram.ext import (
     PollAnswerHandler,
     ContextTypes,
     CallbackContext,
-    Application # Import Application explicitly if needed for type hints elsewhere, though Builder usually suffices
+    Application
 )
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import nest_asyncio
 from google.oauth2.service_account import Credentials
 import gspread
 import json
-import os # Import os to potentially get port if needed for webhook (though we are avoiding webhook)
+import os
 
 nest_asyncio.apply()
 
 # === Configuration ===
-BOT_TOKEN = "7897221989:AAHZoD6r03Qj21v4za2Zha3XFwW5o5Hw4h8" # Consider using environment variables for tokens
+BOT_TOKEN = "7897221989:AAHZoD6r03Qj21v4za2Zha3XFwW5o5Hw4h8" # Consider using environment variables
 GROUP_CHAT_ID = -4607914574
 SCHEDULE_CSV = "ipl_schedule.csv"
 PREDICTIONS_SHEET_ID = "1iCENqo8p3o3twurO7-CSs490C1xrhxK7cNIsUJ4ThBA"
 POLL_MAP_SHEET_ID = "1LogmznPifIPt7GQQPQ7UndHOup4Eo55ThraIUMeH2uE"
-# Decode credentials - ensure this works correctly in your environment
-try:
-    creds_json_decoded = base64.b64decode(creds_json).decode("utf-8")
-    creds_dict = json.loads(creds_json_decoded)
-except Exception as e:
-    logger.error(f"Fatal error decoding/parsing credentials JSON: {e}")
-    # Decide how to handle this - exit or raise? For now, log and raise.
-    raise ValueError("Could not load credentials") from e
+# --- IMPORTANT: Make sure this block is present and correct ---
+creds_json = """
+eyJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsICJwcm9qZWN0X2lkIjogImlwbC1wcmVkaWNpdGlvbnMiLCAicHJpdmF0ZV9rZXlfaWQiOiAiOGIxZDgwMDQzOTg2YjUwZjYyOGQzMzFiYzdiMWE0OWYxYTUzMTBlNCIsICJwcml2YXRlX2tleSI6ICItLS0tLUJFR0lOIFBSSVZBVEUgS0VZLS0tLS1cbk1JSUV2QUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktZd2dnU2lBZ0VBQW9JQkFRQ3NyOTgzUkZyRlpUeVZcbmExcnpYUjk1R1VKb2xDcVZzcDBiajRzTDVxdXVOdmpLSjJ3K296YjNWRHRpQ0lPV1pnaytFOUJwZE55SWk0bnFcbnVVUXlmZWxLT1FsNEw5OWNCZWxaNktTQkZMTC9uYnBaS21qRzBLRDUxTCtSVjdGSVQ1Yzc4dGdSNk54L095SGNcbjA5aEtqeUJuMzhMTm54VkZiQ2Z2cU1BVWFmbVRoZjRJNGE3UkFYTmk4ZjhjZVBrWkJablk2YzZkNXFGdTMyUFdcbmJSZEZaMFRFeGhXRFFjMDJiSzhLN0g4dm9pRVZYTFpLWjJNNnkxN3F1NUZtUFBtZHVubWpYbXNnN3VUSFNpT3lcbmhrd0R3SlI3Mlo2d2ZmaGVJR3ZpbHlWb3hERmx3bW15T1ViVTVuZnlrbmtLN2xNZHJZbjFmM0F1S2pTelB1aElcblc0VVQzZFlYQWdNQkFBRUNnZ0VBSlZrTUw4bkt6L0pyUGUydkIvNVY5anp1VGV2dG9kNjFkK1o5cmg4L2RqaFJcbmFuZElRK3ZNMFlVWUtzV29uL2lGZXpXUjE1ejhyVk53aXFGekRIQ0s2aENYNmJTQTNFZ3pCY3o0OXluZzVNUGFcbkw3cXFXb1Y0cTAvRjlzcytmbU1vVkVEYlZsUkVqQWZmOVFDa1FNdmZ1RmQrckRZQnhiZjBrekt1Q0R3N1RCcE1cbjR5MDB0VzlHeGEybDF3YkQ1ZGlSM3I5OFNhUzRNUkVHQVBXd2FWSEszVGttRnJ3c2lwbGFUeFRCSGZNTlpEMUVcbmFQeGdYNk1qendzbDRGRDNWZ1JhbWlMKzdxd1RrNUdvZHFzNCtGdFVnRVNuQXNWVWRBb2pLK1ZyWDRsZER6UmNcbmtXeVBYQ3BUK3orL2pzUzd4c3ZsTzM1L2lQTEIydjk5eWJ4M21xLzFvUUtCZ1FEdzE5TXhuVjNyY0NnZTZkNHRcbkwxZ1F6cFhEM2x0V0F1K1VPZFhWYlVpZkRWMVowOXhzc1NMdVBuU1ZEOU0rR3NoTWZSRkRNZWwvUG1xK3lHdkFcbmpYK2JxMEFoU3pJVnkvSGJhU241YUxzMkd1N2t3SWpqa0x5ZzhVR3pTNmJzK2VSTXBLSTJIL0lXSjRWa3lLUnFcblVaYm9yZit3TVIwa0YyY282UUU5V3hQZS93S0JnUUMzamYrQUZIY2gvbGNXVlVWMVkzQTBXRy9OTE5VaHhyb0tcbm1aa2xuVVhEd0lNQnNVNUZqekFFZkFFajZGSXE2VlpoRjQzTksyTll3SmxwaTcybW11amszQmd6Vml1OGRSZG5cbjQwakFOWEJya2c4SzNMS3FnVmRoZ0NiQXFiQ1FZRzFoSEppL3RRaFJwM0J3QUMzbms5b0VGZFhpSzV1TnRJLzFcblBycTlOUmdnNlFLQmdDSDRqMVdFT09jb25zQWRoTFVpNUcwYWRvMTJJN1B5SGhEdVIzY2ZQd3NRTzRhY0Y0OU5cblBQd1YyeVBiWTVSeStxV3ZUbXdIOGtOOGJsb1Nzd0FwOVVIajJkdllXMnd2cENHcXA3MENSTVhRN3JsZFh2R2FcblRNRDJ4cW1mbGgvKzczRFFHQUZDYUVjdnMrVVBXQUdYR0k0aFhOdGhVaGJ4SmgvakhjV2x2eHZKQW9HQU9YWDJcbldmNE9IVklscVJRZ25sTDJ1U3hHTTVDcFY5MkNOL2RGZmdUeDVnbkorU21zT3hKTUVkdFA4QkcyUjBDc2pkQjFcbno1aVpqUnNkNjNDWGVpUmNhK2lLbXVlSzRZQTJSNHRiSnZDVHROa1FaSElhYkUzNU1NaVJXUmJGOHl4OGtUNEdcbmcxMEVzYXNkQTdMS3JBZ1k0OWFDRWo5Y2ZzdmJsUWFDSnVFTUlLRUNnWUFGelFEYTE3ZzhiRzl2MkNTWHlzTWxcbmNjY1d0WSt3T3VaQTZYem9jOWJKMHI4WkMyVzJkNXRCUHpqOHpXQm9ISWdpYitYemtDZ3F2M2pPaXRKQXkreXFcbktvb3hiamVZOE9uRFg3RmQyeS9JcVZXOHRTelBaNTRGMEFyWVFlMkdGekRwbHdHZnE0OERsZy9Cc3VyRHhQaURcbk8yOVlWZkd5WkZRb0ZTRjdsT2E0bkE9PVxuLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLVxuIiwgImNsaWVudF9lbWFpbCI6ICJpcGwtcHJlZGljdGlvbnNAaXBsLXByZWRpY2l0aW9ucy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsICJjbGllbnRfaWQiOiAiMTAyOTk2OTMzMTQ0NTc1NTEwMjgzIiwgImF1dGhfdXJpIjogImh0dHBzOi8vYWNjb3VudHMuZ29vZ2xlLmNvbS9vL29hdXRoMi9hdXRoIiwgInRva2VuX3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsICJhdXRoX3Byb3ZpZGVyX3g1MDlfY2VydF91cmwiOiAiaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vb2F1dGgyL3YxL2NlcnRzIiwgImNsaWVudF94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL3JvYm90L3YxL21ldGFkYXRhL3g1MDkvaXBsLXByZWRpY3Rpb25zJTQwaXBsLXByZWRpY2l0aW9ucy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsICJ1bml2ZXJzZV9kb21haW4iOiAiZ29vZ2xlYXBpcy5jb20ifQ==
+""" # Ensure this is correct and uncommented
 
-
-# === Logging Setup ===
+# === Logging Setup === <--- MOVED EARLIER
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
-# Reduce default httpx logging noise if desired
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logger = logging.getLogger(__name__)
+logging.getLogger("httpx").setLevel(logging.WARNING) # Reduce library noise
+logger = logging.getLogger(__name__) # Define logger HERE
 
+# === Decode Credentials === <--- NOW logger IS DEFINED
+try:
+    # Check if creds_json is actually defined before trying to use it
+    if 'creds_json' not in globals() or not creds_json:
+        raise ValueError("creds_json variable is not defined or empty.")
+
+    creds_json_decoded = base64.b64decode(creds_json).decode("utf-8")
+    creds_dict = json.loads(creds_json_decoded)
+    logger.info("Successfully decoded and parsed credentials JSON.") # Log success
+
+except ValueError as e: # Catch specific error if variable is missing
+    logger.error(f"Credential configuration error: {e}")
+    raise # Reraise to stop execution if credentials are required
+except Exception as e:
+    # Now this logger.error call will work because logger is defined above
+    logger.exception(f"Fatal error decoding/parsing credentials JSON: {e}") # Use logger.exception to include traceback
+    raise ValueError("Could not load credentials") from e
 
 # === Google Sheets Interaction ===
 def authorize_gspread():
     """Authorizes Google Sheets API client."""
     try:
-        # Use the pre-parsed dictionary
+        # Use the pre-parsed dictionary 'creds_dict'
+        if 'creds_dict' not in globals():
+             raise ValueError("Credentials dictionary not loaded.") # Add check
+
         creds = Credentials.from_service_account_info(
             creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"]
         )
         return gspread.authorize(creds)
     except Exception as e:
-        logger.error(f"Error authorizing Google Sheets: {e}")
+        logger.error(f"Error authorizing Google Sheets: {e}") # This logging is fine now
         raise
 
 def get_sheet(gc, sheet_id):
