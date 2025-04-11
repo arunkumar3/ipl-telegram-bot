@@ -218,12 +218,11 @@ async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
              logger.error(f"Error sending error message to group chat: {inner_e}")
 
 
-async def scheduled_poll(context: CallbackContext): # APScheduler passes context directly
-    """Posts a poll for a scheduled match. Modified for APScheduler."""
-    job_data = context.job.kwargs # Get data passed via scheduler args
-    bot = context.bot
-    match_no = job_data['match_no']
-    match_info = job_data['match_info']
+async def scheduled_poll(application: Application, match_no: int, match_info: dict):
+    """Posts a poll for a scheduled match. Receives Application object directly."""
+    # Access bot and bot_data via the application object passed by the scheduler
+    bot = application.bot
+    bot_data = application.bot_data
 
     logger.info(f"Running scheduled poll job for Match {match_no}")
 
@@ -232,24 +231,33 @@ async def scheduled_poll(context: CallbackContext): # APScheduler passes context
         question = (
             f"Match {match_no}: {match_name}\n" f"Venue: {match_info['Venue']}\n" "Who will win?"
         )
+
+        # Check team format again here before trying to split and send poll
+        if " vs " not in match_name:
+             logger.warning(f"Skipping scheduled poll for Match {match_no}. Invalid team format: '{match_name}' (Expected 'Team A vs Team B'). Update schedule.")
+             return # Don't try to send poll if format is wrong
+
         options = match_name.split(" vs ")
+        # Basic check, should ideally be 2 options
         if len(options) != 2:
-             logger.error(f"Cannot create poll for Match {match_no}. Invalid team format: {match_name}")
+             logger.error(f"Cannot create poll for Match {match_no}. Incorrect number of teams after splitting: {options}")
              return
 
         poll_message = await bot.send_poll(
-            GROUP_CHAT_ID, question, options, is_anonymous=False # Usually prediction polls are not anonymous
-            # allow_multiple_answers=False # Default is False
+            GROUP_CHAT_ID, question, options, is_anonymous=False
         )
         logger.info(f"Poll sent for Match {match_no}. Poll ID: {poll_message.poll.id}")
 
-        # Store poll info - Access bot_data via context
-        # It's generally better to retrieve sheets fresh if possible, or handle potential stale references
+        # Store poll info - Access bot_data via application
         try:
-            gc = context.bot_data["gc"]
-            poll_map_sheet = get_sheet(gc, POLL_MAP_SHEET_ID) # Re-fetch sheet object potentially
+            # Use sheet IDs stored in bot_data
+            gc = bot_data["gc"]
+            poll_map_sheet_id = bot_data["poll_map_sheet_id"]
+            poll_map_sheet = get_sheet(gc, poll_map_sheet_id) # Re-fetch sheet object
             save_poll_id(poll_map_sheet, poll_message.poll.id, match_no)
             logger.info(f"Poll ID {poll_message.poll.id} mapped to Match {match_no} in Google Sheet.")
+        except KeyError as ke:
+             logger.error(f"Error accessing sheet ID or gc from bot_data while saving poll ID {poll_message.poll.id}: {ke}")
         except Exception as sheet_e:
              logger.error(f"Error saving poll ID {poll_message.poll.id} to Google Sheet for Match {match_no}: {sheet_e}")
              # Consider sending an alert message?
@@ -709,30 +717,20 @@ async def main():
         return # Stop if Gsheets auth fails
 
     # Build the application
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
+    application = ApplicationBuilder().token(BOT_TOKEN).build() # application object created here
 
     # IMPORTANT: Delete webhook BEFORE initializing handlers or starting polling
     webhook_deleted = await check_and_delete_webhook(application.bot)
     if not webhook_deleted:
         logger.error("Failed to ensure webhook was deleted. Bot will not start polling to avoid conflicts.")
-        # You might want to raise an error here or exit forcefully depending on desired behavior
         return # Stop the bot
 
-    # Store gspread client and fetch initial sheets (handle potential errors)
+    # Store gspread client and sheet IDs
     application.bot_data["gc"] = gc
-    try:
-         # Store sheet IDs, let handlers fetch sheets as needed? Or fetch here.
-         # Fetching here risks stale objects if connection drops, but simpler.
-         # Fetching in handlers adds slight overhead per request. Let's fetch here for now.
-        application.bot_data["pred_sheet_id"] = PREDICTIONS_SHEET_ID # Store IDs
-        application.bot_data["poll_map_sheet_id"] = POLL_MAP_SHEET_ID
-        logger.info("Google Sheets authorized. Sheet IDs stored in bot_data.")
-        # Optionally fetch initial sheet objects here and store them if preferred
-        # application.bot_data["pred_sheet"] = get_sheet(gc, PREDICTIONS_SHEET_ID)
-        # application.bot_data["poll_map_sheet"] = get_sheet(gc, POLL_MAP_SHEET_ID)
-    except Exception as e:
-        logger.error(f"Error getting initial sheet objects: {e}. Bot may have issues with sheet operations.")
-        # Decide whether to proceed or stop
+    application.bot_data["pred_sheet_id"] = PREDICTIONS_SHEET_ID
+    application.bot_data["poll_map_sheet_id"] = POLL_MAP_SHEET_ID
+    logger.info("Google Sheets authorized. Sheet IDs stored in bot_data.")
+
 
     # Add handlers
     application.add_handler(CommandHandler("startpoll", startpoll))
@@ -740,8 +738,6 @@ async def main():
     application.add_handler(CommandHandler("leaderboard", leaderboard))
     application.add_handler(CommandHandler("getchatid", get_chat_id))
     application.add_handler(PollAnswerHandler(handle_poll_answer))
-
-    # Add error handler - IMPORTANT
     application.add_error_handler(error_handler)
 
     # Create and start the scheduler
@@ -753,41 +749,36 @@ async def main():
     # Schedule polls
     for match_no, match_info in schedule_mapping.items():
         try:
-            # Use consistent date parsing
             match_date_str = match_info["Date"]
             poll_time_str = match_info["PollStartTime"]
-            match_date = datetime.strptime(match_date_str, "%d %b %Y").date() # Get date part only
-            poll_time = datetime.strptime(poll_time_str, "%I:%M %p").time() # Get time part only
-
-            # Combine date and time, localize with IST, then convert to UTC
+            match_date = datetime.strptime(match_date_str, "%d %b %Y").date()
+            poll_time = datetime.strptime(poll_time_str, "%I:%M %p").time()
             poll_dt_naive = datetime.combine(match_date, poll_time)
             poll_dt_ist = ist.localize(poll_dt_naive)
             poll_dt_utc = poll_dt_ist.astimezone(pytz.utc)
 
         except (ValueError, KeyError) as e:
             logger.error(f"Invalid date/time format or missing key for Match {match_no}: {e}. Skipping schedule.")
-            continue # Skip scheduling this match
+            continue
 
         if poll_dt_utc > now_utc:
+            # --- MODIFIED add_job call ---
             try:
-                # Pass data needed by the job function via kwargs
-                job_kwargs = {'match_no': match_no, 'match_info': match_info}
+                # Pass application, match_no, match_info as positional arguments
                 scheduler.add_job(
                     scheduled_poll,
                     "date",
-                    run_date=poll_dt_utc, # Use UTC datetime for APScheduler
-                    kwargs=job_kwargs, # Pass data using kwargs
+                    run_date=poll_dt_utc,
+                    # Use 'args' to pass positional arguments to scheduled_poll
+                    args=[application, match_no, match_info], # Pass application object here!
                     id=f"poll_{match_no}",
-                    misfire_grace_time=300, # Allow 5 mins delay if bot restarts
-                    replace_existing=True # Replace if job with same id exists
+                    misfire_grace_time=300,
+                    replace_existing=True
                 )
                 jobs_scheduled += 1
-                # logger.info(f"Scheduled poll for Match {match_no} at {poll_dt_utc} (UTC)") # Log scheduling time
             except Exception as sched_e:
-                 logger.error(f"Error scheduling job for Match {match_no}: {sched_e}")
-        # else: # Optionally log matches whose poll time has passed
-            # logger.info(f"Poll start time for Match {match_no} ({poll_dt_utc} UTC) has already passed. Skipping schedule.")
-
+                 # Log the error correctly
+                 logger.error(f"Error scheduling job for Match {match_no}: {sched_e}") # This logging was correct
 
     if jobs_scheduled > 0:
         scheduler.start()
