@@ -27,7 +27,7 @@ SCHEDULE_CSV = "ipl_schedule.csv"
 PREDICTIONS_SHEET_ID = "1iCENqo8p3o3twurO7-CSs490C1xrhxK7cNIsUJ4ThBA"
 POLL_MAP_SHEET_ID = "1LogmznPifIPt7GQQPQ7UndHOup4Eo55ThraIUMeH2uE"
 creds_json = """
-eyJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsICJwcm9qZWN0X2lkIjogImlwbC1wcmVkaWNpdGlvbnMiLCAicHJpdmF0ZV9rZXlfaWQiOiAiOGIxZDgwMDQzOTg2YjUwZjYyOGQzMzFiYzdiMWE0OWYxYTUzMTBlNCIsICJwcml2YXRlX2tleSI6ICItLS0tLUJFR0lOIFBSSVZBVEUgS0VZLS0tLS1cbk1JSUV2QUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktZd2dnU2lBZ0VBQW9JQkFRQ3NyOTgzUkZyRlpUeVZcbmExcnpYUjk1R1VKb2xDcVZzcDBiajRzTDVxdXVOdmpLSjJ3K296YjNWRHRpQ0lPV1pnaytFOUJwZE55SWk0bnFcbnVVUXlmZWxLT1FsNEw5OWNCZWxaNktTQkZMTC9uYnBaS21qRzBLRDUxTCtSVjdGSVQ1Yzc4dGdSNk54L095SGNcbjA5aEtqeUJuMzhMTm54VkZiQ2Z2cU1BVWFmbVRoZjRJNGE3UkFYTmk4ZjhjZVBrWkJablk2YzZkNXFGdTMyUFdcbmJSZEZaMFRFeGhXRFFjMDJiSzhLN0g4dm9pRVZYTFpLWjJNNnkxN3F1NUZtUFBtZHVubWpYbXNnN3VUSFNpT3lcbmhrd0R3SlI3Mlo2d2ZmaGVJR3ZpbHlWb3hERmx3bW15T1ViVTVuZnlrbmtLN2xNZHJZbjFmM0F1S2pTelB1aElcblc0VVQzZFlYQWdNQkFBRUNnZ0VBSlZrTUw4bkt6L0pyUGUyd0IvNVY5anp1VGV2dG9kNjFkK1o5cmg4L2RqaFJcbmFuZElRK3ZNMFlVWUtzV29uL2lGZXpXUjE1ejhyVk53aXFGekRIQ0s2aENYNmJTQTNFZ3pCY3o0OXluZzVNUGFcbkw3cXFXb1Y0cTAvRjlzcytmbU1vVkVEYlZsUkVqQWZmOVFDa1FNdmZ1RmQrckRZQnhiZjBrekt1Q0R3N1RCcE1cbjR5MDB0VzlHeGEybDF3YkQ1ZGlSM3I5OFNhUzRNUkVHQVBXd2FWSEszVGttRnJ3c2lwbGFUeFRCSGZNTlpEMUVcbmFQeGdYNk1qendzbDRGRDNWZ1JhbWlMKzdxd1RrNUdvZHFzNCtGdFVnRVNuQXNWVWRBb2pLK1ZyWDRsZER6UmNcbmtXeVBYQ3BUK3orL2pzUzd4c3ZsTzM1L2lQTEIydjk5eWJ4M21xLzFvUUtCZ1FEdzE5TXhuVjNyY0NnZTZkNHRcbkwxZ1F6cFhEM2x0V0F1K1VPZFhWYlVpZkRWMVowOXhzc1NMdVBuU1ZEOU0rR3NoTWZSRkRNZWwvUG1xK3lHdkFcbmpYK2JxMEFoU3pJVnkvSGJhU241YUxzMkd1N2t3SWpqa0x5ZzhVR3pTNmJzK2VSTXBLSTJIL0lXSjRWa3lLUnFcblVaYm9yZit3TVIwa0YyY282UUU5V3hQZS93S0JnUUMzamYrQUZIY2gvbGNXVlVWMVkzQTBXRy9OTE5VaHhyb0tcbm1aa2xuVVhEd0lNQnNVNUZqekFFZkFFajZGSXE2VlpoRjQzTksyTll3SmxwaTcybW11amszQmd6Vml1OGRSZG5cbjQwakFOWEJya2c4SzNMS3FnVmRoZ0NiQXFiQ1FZRzFoSEppL3RRaFJwM0J3QUMzbms5b0VGZFhpSzV1TnRJLzFcblBycTlOUmdnNlFLQmdDSDRqMVdFT09jb25zQWRoTFVpNUcwYWRvMTJJN1B5SGhEdVIzY2ZQd3NRTzRhY0Y0OU5cblBQd1YyeVBiWTVSeStxV3ZUbXdIOGtOOGJsb1Nzd0FwOVVIajJkdllXMnd2cENHcXA3MENSTVhRN3JsZFh2R2FcblRNRDJ4cW1mbGgvKzczRFFHQUZDYUVjdnMrVVBXQUdYR0k0aFhOdGhVaGJ4SmgvakhjV2x2eHZKQW9HQU9YWDJcbldmNE9IVklscVJRZ25sTDJ1U3hHTTVDcFY5MkNOL2RGZmdUeDVnbkorU21zT3hKTUVkdFA4QkcyUjBDc2pkQjFcbno1aVpqUnNkNjNDWGVpUmNhK2lLbXVlSzRZQTJSNHRiSnZDVHROa1FaSElhYkUzNU1NaVJXUmJGOHl4OGtUNEdcbmcxMEVzYXNkQTdMS3JBZ1k0OWFDRWo5Y2ZzdmJsUWFDSnVFTUlLRUNnWUFGelFEYTE3ZzhiRzl2MkNTWHlzTWxcbmNjY1d0WSt3T3VaQTZYem9jOWJKMHI4WkMyVzJkNXRCUHpqOHpXQm9ISWdpYitYemtDZ3F2M2pPaXRKQXkreXFcbktvb3hiamVZOE9uRFg3RmQyeS9JcVZXOHRTelBaNTRGMEFyWVFlMkdGekRwbHdHZnE0OERsZy9Cc3VyRHhQaURcbk8yOVlWZkd5WkZRb0ZTRjdsT2E0bkE9PVxuLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLVxuIiwgImNsaWVudF9lbWFpbCI6ICJpcGwtcHJlZGljdGlvbnNAaXBsLXByZWRpY2l0aW9ucy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsICJjbGllbnRfaWQiOiAiMTAyOTk2OTMzMTQ0NTc1NTEwMjgzIiwgImF1dGhfdXJpIjogImh0dHBzOi8vYWNjb3VudHMuZ29vZ2xlLmNvbS9vL29hdXRoMi9hdXRoIiwgInRva2VuX3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsICJhdXRoX3Byb3ZpZGVyX3g1MDlfY2VydF91cmwiOiAiaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vb2F1dGgyL3YxL2NlcnRzIiwgImNsaWVudF94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL3JvYm90L3YxL21ldGFkYXRhL3g1MDkvaXBsLXByZWRpY3Rpb25zJTQwaXBsLXByZWRpY2l0aW9ucy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsICJ1bml2ZXJzZV9kb21haW4iOiAiZ29vZ2xlYXBpcy5jb20ifQ==
+eyJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsICJwcm9qZWN0X2lkIjogImlwbC1wcmVkaWNpdGlvbnMiLCAicHJpdmF0ZV9rZXlfaWQiOiAiOGIxZDgwMDQzOTg2YjUwZjYyOGQzMzFiYzdiMWE0OWYxYTUzMTBlNCIsICJwcml2YXRlX2tleSI6ICItLS0tLUJFR0lOIFBSSVZBVEUgS0VZLS0tLS1cbk1JSUV2QUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktZd2dnU2lBZ0VBQW9JQkFRQ3NyOTgzUkZyRlpUeVZcbmExcnpYUjk1R1VKb2xDcVZzcDBiajRzTDVxdXVOdmpLSjJ3K296YjNWRHRpQ0lPV1pnaytFOUJwZE55SWk0bnFcbnVVUXlmZWxLT1FsNEw5OWNCZWxaNktTQkZMTC9uYnBaS21qRzBLRDUxTCtSVjdGSVQ1Yzc4dGdSNk54L095SGNcbjA5aEtqeUJuMzhMTm54VkZiQ2Z2cU1BVWFmbVRoZjRJNGE3UkFYTmk4ZjhjZVBrWkJablk2YzZkNXFGdTMyUFdcbmJSZEZaMFRFeGhXRFFjMDJiSzhLN0g4dm9pRVZYTFpLWjJNNnkxN3F1NUZtUFBtZHVubWpYbXNnN3VUSFNpT3lcbmhrd0R3SlI3Mlo2d2ZmaGVJR3ZpbHlWb3hERmx3bW15T1ViVTVuZnlrbmtLN2xNZHJZbjFmM0F1S2pTelB1aElcblc0VVQzZFlYQWdNQkFBRUNnZ0VBSlZrTUw4bkt6L0pyUGV5d0IvNVY5anp1VGV2dG9kNjFkK1o5cmg4L2RqaFJcbmFuZElRK3ZNMFlVWUtzV29uL2lGZXpXUjE1ejhyVk53aXFGekRIQ0s2aENYNmJTQTNFZ3pCY3o0OXluZzVNUGFcbkw3cXFXb1Y0cTAvRjlzcytmbU1vVkVEYlZsUkVqQWZmOVFDa1FNdmZ1RmQrckRZQnhiZjBrekt1Q0R3N1RCcE1cbjR5MDB0VzlHeGEybDF3YkQ1ZGlSM3I5OFNhUzRNUkVHQVBXd2FWSEszVGttRnJ3c2lwbGFUeFRCSGZNTlpEMUVcbmFQeGdYNk1qendzbDRGRDNWZ1JhbWlMKzdxd1RrNUdvZHFzNCtGdFVnRVNuQXNWVWRBb2pLK1ZyWDRsZER6UmNcbmtXeVBYQ3BUK3orL2pzUzd4c3ZsTzM1L2lQTEIydjk5eWJ4M21xLzFvUUtCZ1FEdzE5TXhuVjNyY0NnZTZkNHRcbkwxZ1F6cFhEM2x0V0F1K1VPZFhWYlVpZkRWMVowOXhzc1NMdVBuU1ZEOU0rR3NoTWZSRkRNZWwvUG1xK3lHdkFcbmpYK2JxMEFoU3pJVnkvSGJhU241YUxzMkd1N2t3SWpqa0x5ZzhVR3pTNmJzK2VSTXBLSTJIL0lXSjRWa3lLUnFcblVaYm9yZit3TVIwa0YyY282UUU5V3hQZS93S0JnUUMzamYrQUZIY2gvbGNXVlVWMVkzQTBXRy9OTE5VaHhyb0tcbm1aa2xuVVhEd0lNQnNVNUZqekFFZkFFajZGSXE2VlpoRjQzTksyTll3SmxwaTcybW11amszQmd6Vml1OGRSZG5cbjQwakFOWEJya2c4SzNMS3FnVmRoZ0NiQXFiQ1FZRzFoSEppL3RRaFJwM0J3QUMzbms5b0VGZFhpSzV1TnRJLzFcblBycTlOUmdnNlFLQmdDSDRqMVdFT09jb25zQWRoTFVpNUcwYWRvMTJJN1B5SGhEdVIzY2ZQd3NRTzRhY0Y0OU5cblBQd1YyeVBiWTVSeStxV3ZUbXdIOGtOOGJsb1Nzd0FwOVVIajJkdllXMnd2cENHcXA3MENSTVhRN3JsZFh2R2FcblRNRDJ4cW1mbGgvKzczRFFHQUZDYUVjdnMrVVBXQUdYR0k0aFhOdGhVaGJ4SmgvakhjV2x2eHZKQW9HQU9YWDJcbldmNE9IVklscVJRZ25sTDJ1U3hHTTVDcFY5MkNOL2RGZmdUeDVnbkorU21zT3hKTUVkdFA4QkcyUjBDc2pkQjFcbno1aVpqUnNkNjNDWGVpUmNhK2lLbXVlSzRZQTJSNHRiSnZDVHROa1FaSElhYkUzNU1NaVJXUmJGOHl4OGtUNEdcbmcxMEVzYXNkQTdMS3JBZ1k0OWFDRWo5Y2ZzdmJsUWFDSnVFTUlLRUNnWUFGelFEYTE3ZzhiRzl2MkNTWHlzTWxcbmNjY1d0WSt3T3VaQTZYem9jOWJKMHI4WkMyVzJkNXRCUHpqOHpXQm9ISWdpYitYemtDZ3F2M2pPaXRKQXkreXFcbktvb3hiamVZOE9uRFg3RmQyeS9JcVZXOHRTelBaNTRGMEFyWVFlMkdGekRwbHdHZnE0OERsZy9Cc3VyRHhQaURcbk8yOVlWZkd5WkZRb0ZTRjdsT2E0bkE9PVxuLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLVxuIiwgImNsaWVudF9lbWFpbCI6ICJpcGwtcHJlZGljdGlvbnNAaXBsLXByZWRpY2l0aW9ucy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsICJjbGllbnRfaWQiOiAiMTAyOTk2OTMzMTQ0NTc1NTEwMjgzIiwgImF1dGhfdXJpIjogImh0dHBzOi8vYWNjb3VudHMuZ29vZ2xlLmNvbS9vL29hdXRoMi9hdXRoIiwgInRva2VuX3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsICJhdXRoX3Byb3ZpZGVyX3g1MDlfY2VydF91cmwiOiAiaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vb2F1dGgyL3YxL2NlcnRzIiwgImNsaWVudF94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL3JvYm90L3YxL21ldGFkYXRhL3g1MDkvaXBsLXByZWRpY3Rpb25zJTQwaXBsLXByZWRpY2l0aW9ucy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsICJ1bml2ZXJzZV9kb21haW4iOiAiZ29vZ2xlYXBpcy5jb20ifQ==
 """  # Replace with your service account JSON
 
 # === Logging Setup ===
@@ -51,7 +51,6 @@ def authorize_gspread():
         raise
 
 
-
 def get_sheet(gc, sheet_id):
     """Retrieves a Google Sheet by its ID."""
     try:
@@ -59,7 +58,6 @@ def get_sheet(gc, sheet_id):
     except Exception as e:
         logger.error(f"Error accessing sheet {sheet_id}: {e}")
         raise
-
 
 
 def get_predictions_df(sheet):
@@ -72,7 +70,6 @@ def get_predictions_df(sheet):
         return pd.DataFrame()  # Return empty DataFrame on error
 
 
-
 def save_predictions_df(sheet, df):
     """Saves predictions data to the Google Sheet."""
     try:
@@ -81,7 +78,6 @@ def save_predictions_df(sheet, df):
     except Exception as e:
         logger.error(f"Error saving predictions data: {e}")
         raise
-
 
 
 def get_poll_map(sheet):
@@ -96,7 +92,6 @@ def get_poll_map(sheet):
     except Exception as e:
         logger.error(f"Error getting poll map: {e}")
         return {}  # Return empty dict on error
-
 
 
 def save_poll_id(sheet, poll_id, match_no):
@@ -153,7 +148,6 @@ async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text=f"Error: {e}")
 
 
-
 async def scheduled_poll(bot, match_no, match_info):
     """Posts a poll for a scheduled match."""
     try:
@@ -181,7 +175,6 @@ async def scheduled_poll(bot, match_no, match_info):
     except Exception as e:
         logger.error(f"Error in scheduled_poll: {e}")
         await bot.send_message(GROUP_CHAT_ID, text=f"Error: {e}")
-
 
 
 async def startpoll(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -215,7 +208,6 @@ async def startpoll(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error in startpoll: {e}")
         await context.bot.send_message(GROUP_CHAT_ID, text=f"Error: {e}")
-
 
 
 async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -278,7 +270,6 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await context.bot.send_message(GROUP_CHAT_ID, text=f"Error: {e}")
 
 
-
 async def score_match(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Scores a match and updates predictions."""
     try:
@@ -303,7 +294,6 @@ async def score_match(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error in score_match: {e}")
         await context.bot.send_message(GROUP_CHAT_ID, text=f"Error: {e}")
-
 
 
 async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -334,7 +324,6 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(GROUP_CHAT_ID, text=f"Error: {e}")
 
 
-
 async def error_handler(update: Update, context: CallbackContext):
     """Handles errors during bot operation."""
     logger.error(f"Update {update} caused error {context.error}")
@@ -346,34 +335,20 @@ async def error_handler(update: Update, context: CallbackContext):
         logger.error(f"Error sending error message: {e}")
 
 
-
-async def check_and_delete_webhook(bot, retries=5, delay=30):  # Increased retries and delay
-    """Checks for and deletes any active webhooks with retries."""
-    for attempt in range(retries):
-        try:
-            webhook_info = await bot.get_webhook_info()
-            if webhook_info.url:
-                logger.warning(
-                    f"Webhook found, deleting... (Attempt {attempt + 1}/{retries}). URL: {webhook_info.url}"  # Log the URL
-                )
-                await bot.delete_webhook(drop_pending_updates=True)
-                logger.info("Webhook deleted.")
-                return  # Exit if successful
-            else:
-                logger.info("Webhook is not active.")
-                return
-        except Exception as e:
-            logger.error(
-                f"Error deleting webhook: {e} (Attempt {attempt + 1}/{retries})"
-            )
-            if attempt < retries - 1:
-                await asyncio.sleep(delay)  # Wait before retrying
-    logger.error("Failed to delete webhook after multiple retries.")  # Log on final failure
-
+# Modified webhook cleanup function - simplified and more reliable
+async def ensure_no_webhook(bot):
+    """Ensure no webhook is active for this bot token"""
+    try:
+        # Just delete webhook and log result
+        await bot.delete_webhook(drop_pending_updates=True)
+        logger.info("Webhook deleted or was not present")
+    except Exception as e:
+        logger.error(f"Error in webhook cleanup: {e}")
 
 
 async def main():
     """Main function to start the bot."""
+    # Create the application with explicit polling mode
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     # Initialize Google Sheets connection
@@ -384,8 +359,8 @@ async def main():
     app.bot_data["pred_sheet"] = get_sheet(gc, PREDICTIONS_SHEET_ID)
     app.bot_data["poll_map_sheet"] = get_sheet(gc, POLL_MAP_SHEET_ID)
 
-    # Delete webhook at the very start, with retries
-    await check_and_delete_webhook(app.bot)
+    # Remove webhook at the start - only once
+    await ensure_no_webhook(app.bot)
 
     # Add handlers
     app.add_handler(CommandHandler("startpoll", startpoll))
@@ -426,21 +401,8 @@ async def main():
 
     scheduler.start()
 
-    # Define a periodic task to check and delete the webhook
-    async def periodic_check():
-        while True:
-            await check_and_delete_webhook(app.bot)
-            await asyncio.sleep(
-                1800
-            )  # Check every 30 minutes (increased interval)
-
-    # Run the bot and the periodic check concurrently
-    try:
-        await asyncio.gather(app.run_polling(), periodic_check())
-    except Exception as e:
-        logger.error(f"An error occurred: {e}")
-    finally:
-        logging.info("Application exiting.")
+    # Use explicit polling method
+    await app.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
