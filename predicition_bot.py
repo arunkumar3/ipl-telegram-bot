@@ -652,44 +652,45 @@ async def error_handler(update: object, context: CallbackContext):
         logger.error(f"Exception in error_handler itself while sending message: {e}")
 
 
-async def check_and_delete_webhook(bot, retries=5, delay=15): # Slightly reduced default delay
-    """Checks for and deletes any active webhooks with retries. Returns True if webhook is confirmed gone, False otherwise."""
-    logger.info("Checking webhook status...")
+async def check_and_delete_webhook(application: Application, retries=5, delay=30):
+    """Checks for and deletes any active webhooks with retries and detailed logging."""
     for attempt in range(retries):
         try:
-            webhook_info = await bot.get_webhook_info()
-            if webhook_info and webhook_info.url: # Check webhook_info is not None
-                logger.warning(
-                    f"Webhook found with URL: {webhook_info.url}. Attempting deletion... (Attempt {attempt + 1}/{retries})"
-                )
-                delete_success = await bot.delete_webhook(drop_pending_updates=True)
-                if delete_success:
-                    logger.info("Webhook successfully deleted.")
-                    # Verify deletion
-                    await asyncio.sleep(2) # Short pause before verifying
-                    webhook_info_after = await bot.get_webhook_info()
-                    if not (webhook_info_after and webhook_info_after.url):
-                         logger.info("Webhook deletion confirmed.")
-                         return True
-                    else:
-                         logger.warning("Webhook deletion command succeeded, but webhook info still shows a URL. Retrying check...")
-                else:
-                     logger.error(f"bot.delete_webhook call returned False (Attempt {attempt + 1}/{retries}).")
+            webhook_info = await application.bot.get_webhook_info()
+            logger.info(f"Webhook Info (Attempt {attempt + 1}/{retries}): {webhook_info}")  # Log the entire response
 
+            if webhook_info.url:
+                logger.warning(
+                    f"Webhook found, deleting... (Attempt {attempt + 1}/{retries}). URL: {webhook_info.url}"
+                )
+                await application.bot.delete_webhook(drop_pending_updates=True)
+                logger.info(f"deleteWebhook result: {await application.bot.delete_webhook()}")  # Log result
+
+                # Add a check here to ensure deletion was successful
+                webhook_info_after_deletion = await application.bot.get_webhook_info()
+                logger.info(f"Webhook Info after deletion (Attempt {attempt + 1}/{retries}): {webhook_info_after_deletion}")
+
+                if webhook_info_after_deletion.url:
+                    logger.error(
+                        f"Webhook still active after deletion attempt {attempt + 1}/{retries}!"
+                    )
+                    if attempt == retries - 1: # If this is the final attempt
+                        await application.bot.send_message(GROUP_CHAT_ID, text="CRITICAL: Webhook deletion failed repeatedly!")
+                    await asyncio.sleep(delay) # Wait before retry
+                else:
+                    logger.info(f"Webhook successfully deleted after attempt {attempt + 1}/{retries}.")
+                    return  # Exit if successful
             else:
-                logger.info("No active webhook found.")
-                return True # No webhook to delete, success
+                logger.info("Webhook is not active.")
+                return  # Exit if no webhook
         except Exception as e:
             logger.error(
-                f"Error during webhook check/delete: {e} (Attempt {attempt + 1}/{retries})"
+                f"Error deleting webhook: {e} (Attempt {attempt + 1}/{retries})"
             )
-
-        if attempt < retries - 1:
-            logger.info(f"Waiting {delay} seconds before retrying webhook check/delete...")
-            await asyncio.sleep(delay)
-
-    logger.error("Failed to confirm webhook deletion after multiple retries.")
-    return False # Failed to delete/confirm deletion
+            if attempt < retries - 1:
+                await asyncio.sleep(delay)  # Wait before retrying
+    logger.critical("Failed to delete webhook after multiple retries. Bot may not function correctly!")
+    await application.bot.send_message(GROUP_CHAT_ID, text="CRITICAL: Webhook deletion failed after several attempts!")
 
 
 # --- Global schedule mapping ---
